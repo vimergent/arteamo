@@ -1,0 +1,16 @@
+# Clean URL redirects for sections
+/projects  /index.html#projects  200
+/about  /index.html#about  200
+/services  /index.html#services  200
+/contact  /index.html#contact  200
+
+# Admin panel
+/admin  /admin/index.html  200
+
+# Language-specific routes (for future use)
+/bg/*  /index.html  200
+/en/*  /index.html  200
+/ru/*  /index.html  200
+/es/*  /index.html  200
+/he/*  /index.html  200
+/zh/*  /index.html  200

@@ -1,0 +1,30 @@
+{
+  "version": "1.2.0",
+  "lastUpdated": "2025-07-01T16:47:00Z",
+  "changes": {
+    "1.2.0": {
+      "date": "2025-07-01",
+      "updates": [
+        "Added Hebrew (HE) and Chinese (ZH) language support",
+        "Fixed JavaScript syntax errors in translations.js",
+        "Fixed double-encoding issue in image paths",
+        "Updated language-switcher for localStorage consistency",
+        "Temporarily using non-minified JS files"
+      ]
+    },
+    "1.1.0": {
+      "date": "2025-06-27",
+      "updates": [
+        "Initial deployment with 4 languages (BG, EN, RU, ES)",
+        "Website1-minimalist as main site",
+        "Performance optimizations",
+        "Mobile responsive design"
+      ]
+    }
+  },
+  "deployment": {
+    "environment": "production",
+    "platform": "netlify",
+    "repository": "github.com/vimergent/arteamo-portfolio"
+  }
+}

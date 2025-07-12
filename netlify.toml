@@ -1,0 +1,305 @@
+# Netlify Configuration for Studio Arteamo Portfolio
+# Comprehensive optimization using all Netlify features
+
+[build]
+  publish = "."
+  command = "echo 'No build needed'"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Asset optimization
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.html]
+  pretty_urls = true
+[build.processing.images]
+  compress = true
+
+# Enhanced security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    X-DNS-Prefetch-Control = "on"
+    Content-Security-Policy = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob:; connect-src 'self' https://api.netlify.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    X-Permitted-Cross-Domain-Policies = "none"
+    Expect-CT = "max-age=86400, enforce"
+
+# Optimized caching strategy
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Link = "<styles-enhanced.min.css>; rel=preload; as=style, <../translations.js>; rel=preload; as=script"
+
+# Images - 1 year cache
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.jpeg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.avif"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Fonts - 1 year cache
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.woff"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# CSS/JS - 1 week cache with revalidation
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+# Video files - 1 month cache
+[[headers]]
+  for = "/*.mp4"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+    Accept-Ranges = "bytes"
+
+# Configuration files - shorter cache
+[[headers]]
+  for = "/translations.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=300"
+
+[[headers]]
+  for = "/project-config.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=300"
+
+# Main redirect - website1-minimalist to root
+# DISABLED - These redirects create a loop with the root redirect
+# [[redirects]]
+#   from = "/website1-minimalist/*"
+#   to = "/:splat"
+#   status = 301
+#   force = true
+# 
+# [[redirects]]
+#   from = "/website1-minimalist"
+#   to = "/"
+#   status = 301
+#   force = true
+
+# Clean URLs
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+# Handle old website variations
+[[redirects]]
+  from = "/website2-premium"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/website3-dark"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/website4-colorful"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/website5-classic"
+  to = "/"
+  status = 301
+
+# Language-based redirects with geo-targeting
+[[redirects]]
+  from = "/*"
+  to = "/bg/:splat"
+  status = 302
+  conditions = {Country = ["BG"]}
+  headers = {X-Country = "bg"}
+
+[[redirects]]
+  from = "/*"
+  to = "/ru/:splat"
+  status = 302
+  conditions = {Country = ["RU", "BY", "KZ", "UA"]}
+  headers = {X-Country = "ru"}
+
+[[redirects]]
+  from = "/*"
+  to = "/es/:splat"
+  status = 302
+  conditions = {Country = ["ES", "MX", "AR", "CO", "CL"]}
+  headers = {X-Country = "es"}
+
+# Language-specific clean URLs
+[[redirects]]
+  from = "/bg/*"
+  to = "/index.html"
+  status = 200
+  headers = {X-Language = "bg"}
+
+[[redirects]]
+  from = "/en/*"
+  to = "/index.html"
+  status = 200
+  headers = {X-Language = "en"}
+
+[[redirects]]
+  from = "/ru/*"
+  to = "/index.html"
+  status = 200
+  headers = {X-Language = "ru"}
+
+[[redirects]]
+  from = "/es/*"
+  to = "/index.html"
+  status = 200
+  headers = {X-Language = "es"}
+
+[[redirects]]
+  from = "/he/*"
+  to = "/index.html"
+  status = 200
+  headers = {X-Language = "he"}
+
+[[redirects]]
+  from = "/zh/*"
+  to = "/index.html"
+  status = 200
+  headers = {X-Language = "zh"}
+
+# Handle projects with clean URLs
+[[redirects]]
+  from = "/projects"
+  to = "/index.html#projects"
+  status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/index.html#about"
+  status = 200
+
+[[redirects]]
+  from = "/services"
+  to = "/index.html#services"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/index.html#contact"
+  status = 200
+
+# Admin panel
+[[redirects]]
+  from = "/admin"
+  to = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/:splat"
+  status = 200
+
+# API proxy for form submissions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Edge function configurations
+# TEMPORARILY DISABLED - Causing redirect loops with images
+# [[edge_functions]]
+#   path = "/api/optimize-image"
+#   function = "image-optimizer"
+# 
+# [[edge_functions]]
+#   path = "/*"
+#   function = "performance-optimizer"
+
+# Environment variables
+[context.production.environment]
+  SITE_URL = "https://studio-arteamo.netlify.app"
+  CONTACT_EMAIL = "studio@arteamo.net,petyaem@abv.bg"
+  ENABLE_ANALYTICS = "true"
+
+[context.deploy-preview.environment]
+  ROBOTS = "noindex, nofollow"
+
+[context.branch-deploy.environment]
+  ROBOTS = "noindex, nofollow"
+
+# Plugins
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+  [plugins.inputs]
+    buildDir = "."
+    exclude = [
+      "admin/**",
+      "test-*.html",
+      "*.backup"
+    ]
+    prettyURLs = true
+    trailingSlash = false
+
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+  [plugins.inputs]
+    [plugins.inputs.audits]
+      performance = 0.9
+      accessibility = 0.9
+      best-practices = 0.9
+      seo = 0.9
+    output_path = "reports/lighthouse.html"
+
+# Checklinks plugin disabled due to false positives with Google Fonts preconnect
+# [[plugins]]
+#   package = "netlify-plugin-checklinks"
+#   [plugins.inputs]
+#     checkExternal = false
+#     skipPatterns = ["admin/**"]

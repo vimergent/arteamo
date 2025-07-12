@@ -1,0 +1,16 @@
+{
+  "name": "studio-arteamo-portfolio",
+  "version": "3.0.0",
+  "description": "Studio Arteamo Interior Design Portfolio",
+  "main": "index.html",
+  "scripts": {
+    "serve": "python3 -m http.server 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vimergent/arteamo.git"
+  },
+  "author": "Studio Arteamo",
+  "license": "UNLICENSED",
+  "private": true
+}

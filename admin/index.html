@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Arteamo Admin - Website Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <!-- Authentication Screen -->
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-container">
+            <div class="auth-box">
+                <h1 class="auth-title">Studio Arteamo</h1>
+                <p class="auth-subtitle">Admin Access</p>
+                <form id="authForm" class="auth-form">
+                    <div class="form-group">
+                        <input 
+                            type="password" 
+                            id="authPassword" 
+                            class="form-input" 
+                            placeholder="Enter password"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="authButtonText">Access Admin Panel</span>
+                    </button>
+                    <div id="authError" class="error-message"></div>
+                </form>
+                <div class="auth-footer">
+                    <a href="../" class="back-link">← Back to website</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Admin Interface -->
+    <div id="adminInterface" class="admin-interface" style="display: none;">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-container">
+                <div class="header-left">
+                    <h1 class="header-title">Studio Arteamo Admin</h1>
+                    <span class="header-status" id="saveStatus">All changes saved</span>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-ghost" onclick="adminApp.viewWebsite()">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
+                            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/>
+                        </svg>
+                        View Website
+                    </button>
+                    <button class="btn btn-primary" onclick="adminApp.exportData()">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                        Export & Deploy
+                    </button>
+                    <button class="btn btn-ghost" onclick="adminApp.logout()">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <div class="nav-container">
+                <button class="nav-tab active" data-section="projects">Projects</button>
+                <button class="nav-tab" data-section="content">Page Content</button>
+                <button class="nav-tab" data-section="settings">Settings</button>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="admin-content">
+            <!-- Projects Section -->
+            <section id="projectsSection" class="content-section active">
+                <div class="section-header">
+                    <h2 class="section-title">Manage Projects</h2>
+                    <button class="btn btn-primary" onclick="adminApp.createProject()">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                        </svg>
+                        Add New Project
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <input 
+                        type="text" 
+                        id="searchProjects" 
+                        class="search-input" 
+                        placeholder="Search projects..."
+                    >
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="residential">Residential</option>
+                        <option value="commercial">Commercial</option>
+                        <option value="office">Office</option>
+                        <option value="medical">Medical</option>
+                        <option value="hospitality">Hospitality</option>
+                    </select>
+                </div>
+
+                <!-- Projects Grid -->
+                <div class="projects-admin-grid" id="projectsGrid">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Page Content Section -->
+            <section id="contentSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Page Content</h2>
+                </div>
+
+                <div class="content-editor">
+                    <!-- Hero Section -->
+                    <div class="editor-section">
+                        <h3 class="editor-section-title">Hero Section</h3>
+                        <div class="lang-tabs">
+                            <button class="lang-tab active" data-lang="en">English</button>
+                            <button class="lang-tab" data-lang="bg">Bulgarian</button>
+                            <button class="lang-tab" data-lang="ru">Russian</button>
+                            <button class="lang-tab" data-lang="es">Spanish</button>
+                        </div>
+                        
+                        <div class="lang-content active" data-lang="en">
+                            <div class="form-group">
+                                <label>Company Slogan</label>
+                                <input type="text" class="form-input" id="slogan_en" value="Creating Spaces That Inspire">
+                            </div>
+                            <div class="form-group">
+                                <label>Mission Statement</label>
+                                <textarea class="form-textarea" id="mission_en">We believe that every space is a place for expressing ideas and emotions. Our mission is to create interiors that inspire and change the way we see the world.</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="editor-section">
+                        <h3 class="editor-section-title">About Section</h3>
+                        <div class="form-group">
+                            <label>About Text</label>
+                            <textarea class="form-textarea" rows="6">Founded in 2008 by Eng. Petya Petrova, Studio Arteamo has become one of the leading names in interior design.</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="editor-actions">
+                        <button class="btn btn-primary" onclick="adminApp.saveContent()">Save Content Changes</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settingsSection" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Settings</h2>
+                </div>
+
+                <div class="settings-panel">
+                    <div class="settings-group">
+                        <h3>Security</h3>
+                        <div class="form-group">
+                            <label>Change Admin Password</label>
+                            <input type="password" class="form-input" id="newPassword" placeholder="New password">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm password">
+                        </div>
+                        <button class="btn btn-secondary" onclick="adminApp.changePassword()">Update Password</button>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Backup & Restore</h3>
+                        <p class="settings-info">Create a backup of all your content or restore from a previous backup.</p>
+                        <div class="settings-actions">
+                            <button class="btn btn-secondary" onclick="adminApp.createBackup()">Create Backup</button>
+                            <button class="btn btn-secondary" onclick="adminApp.restoreBackup()">Restore Backup</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Advanced</h3>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="autoSave" checked> Enable auto-save
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="showPreview" checked> Show live preview
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Preview Panel -->
+        <aside class="preview-panel" id="previewPanel">
+            <div class="preview-header">
+                <h3>Live Preview</h3>
+                <button class="btn-close" onclick="adminApp.togglePreview()">×</button>
+            </div>
+            <iframe id="previewFrame" src="../index.html" class="preview-frame"></iframe>
+        </aside>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Edit Project</h2>
+                <button class="btn-close" onclick="adminApp.closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="projectForm">
+                    <!-- Basic Information -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Project Folder Name*</label>
+                            <input type="text" class="form-input" id="projectFolder" required>
+                            <small>This should match the actual folder name containing images</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category*</label>
+                            <select class="form-select" id="projectCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="office">Office</option>
+                                <option value="medical">Medical</option>
+                                <option value="hospitality">Hospitality</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Year*</label>
+                            <input type="number" class="form-input" id="projectYear" min="2000" max="2099" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Area</label>
+                            <input type="text" class="form-input" id="projectArea" placeholder="e.g., 120 m²">
+                        </div>
+                    </div>
+
+                    <!-- Language Tabs -->
+                    <div class="lang-tabs">
+                        <button type="button" class="lang-tab active" data-lang="en">English</button>
+                        <button type="button" class="lang-tab" data-lang="bg">Bulgarian</button>
+                        <button type="button" class="lang-tab" data-lang="ru">Russian</button>
+                        <button type="button" class="lang-tab" data-lang="es">Spanish</button>
+                    </div>
+
+                    <!-- Language Content -->
+                    <div class="lang-content active" data-lang="en">
+                        <div class="form-group">
+                            <label>Project Name (English)*</label>
+                            <input type="text" class="form-input" id="name_en" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description (English)</label>
+                            <textarea class="form-textarea" id="description_en" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="lang-content" data-lang="bg">
+                        <div class="form-group">
+                            <label>Project Name (Bulgarian)</label>
+                            <input type="text" class="form-input" id="name_bg">
+                        </div>
+                        <div class="form-group">
+                            <label>Description (Bulgarian)</label>
+                            <textarea class="form-textarea" id="description_bg" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="lang-content" data-lang="ru">
+                        <div class="form-group">
+                            <label>Project Name (Russian)</label>
+                            <input type="text" class="form-input" id="name_ru">
+                        </div>
+                        <div class="form-group">
+                            <label>Description (Russian)</label>
+                            <textarea class="form-textarea" id="description_ru" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="lang-content" data-lang="es">
+                        <div class="form-group">
+                            <label>Project Name (Spanish)</label>
+                            <input type="text" class="form-input" id="name_es">
+                        </div>
+                        <div class="form-group">
+                            <label>Description (Spanish)</label>
+                            <textarea class="form-textarea" id="description_es" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Images -->
+                    <div class="form-group">
+                        <label>Project Images</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <svg width="40" height="40" viewBox="0 0 20 20" fill="currentColor" opacity="0.3">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <p>Drop images here or click to select</p>
+                            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                        </div>
+                        <div class="image-list" id="imageList">
+                            <!-- Image list will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="adminApp.closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="admin.js"></script>
+    <script src="../../project-config.js"></script>
+    <script src="../../translations.js"></script>
+</body>
+</html>

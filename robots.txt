@@ -1,0 +1,40 @@
+# Robots.txt for Studio Arteamo
+# https://studio-arteamo.netlify.app
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /test-*.html
+Disallow: /*.backup
+
+# Sitemaps
+Sitemap: https://studio-arteamo.netlify.app/sitemap.xml
+
+# Crawl-delay for courtesy
+Crawl-delay: 1
+
+# Specific bot rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Yandexbot
+Allow: /
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
