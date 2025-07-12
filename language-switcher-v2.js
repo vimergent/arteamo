@@ -201,12 +201,27 @@ class LanguageSwitcher {
     }
 
     applyTranslations() {
+        // Initialize retry counter if not exists
+        if (!this.retryCount) {
+            this.retryCount = 0;
+        }
+        
         // Check if translations object exists
         if (typeof translations === 'undefined') {
-            console.warn('Translations not loaded yet, retrying...');
-            setTimeout(() => this.applyTranslations(), 100);
+            this.retryCount++;
+            // Only retry up to 50 times (5 seconds total)
+            if (this.retryCount < 50) {
+                console.warn('Translations not loaded yet, retrying...');
+                setTimeout(() => this.applyTranslations(), 100);
+            } else {
+                console.error('Failed to load translations after 5 seconds');
+                this.retryCount = 0; // Reset for future attempts
+            }
             return;
         }
+        
+        // Reset retry count on success
+        this.retryCount = 0;
         
         const t = translations[this.currentLang];
         
