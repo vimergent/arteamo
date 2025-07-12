@@ -1,5 +1,5 @@
 # Robots.txt for Studio Arteamo
-# https://studio-arteamo.netlify.app
+# https://YOUR-NETLIFY-SITE.netlify.app
 
 User-agent: *
 Allow: /
@@ -8,7 +8,7 @@ Disallow: /test-*.html
 Disallow: /*.backup
 
 # Sitemaps
-Sitemap: https://studio-arteamo.netlify.app/sitemap.xml
+Sitemap: https://YOUR-NETLIFY-SITE.netlify.app/sitemap.xml
 
 # Crawl-delay for courtesy
 Crawl-delay: 1

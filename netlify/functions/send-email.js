@@ -27,7 +27,7 @@ exports.handler = async (event, context) => {
 
     // Email configuration
     const emailConfig = {
-      to: process.env.CONTACT_EMAIL || 'studio@arteamo.net,petyaem@abv.bg',
+      to: process.env.CONTACT_EMAIL || 'your-email@example.com',
       subject: `[Studio Arteamo] ${data.subject}`,
       html: `
         <h2>New Contact Form Submission</h2>
