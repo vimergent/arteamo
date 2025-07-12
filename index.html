@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Preload critical resources -->
-    <link rel="preload" href="styles-enhanced.min.css" as="style">
-    <link rel="preload" href="mobile-optimizations.min.css" as="style">
-    <link rel="preload" href="translations.js" as="script">
+    <link rel="preload" href="/styles-enhanced.min.css" as="style">
+    <link rel="preload" href="/mobile-optimizations.min.css" as="style">
+    <link rel="preload" href="/translations.js" as="script">
     <!-- Preload critical fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -26,12 +26,12 @@
     <!-- Inline critical CSS for faster initial render -->
     <style>*{margin:0;padding:0;box-sizing:border-box}:root{--primary-color:#000000;--secondary-color:#666666;--accent-color:#1a1a1a;--bg-color:#ffffff;--bg-secondary:#fafafa;--light-gray:#f8f8f8;--border-color:#e8e8e8;--text-primary:#000000;--text-secondary:#666666;--text-tertiary:#999999;--premium-gold:#d4af37;--premium-charcoal:#2c2c2c;--premium-warm:#f9f7f4;--spacing-unit:8px;--spacing-xs:0.5rem;--spacing-sm:1rem;--spacing-md:1.5rem;--spacing-lg:2rem;--spacing-xl:3rem;--font-size-xs:0.75rem;--font-size-sm:0.875rem;--font-size-base:1rem;--font-size-lg:1.125rem;--font-size-xl:1.25rem;--font-size-2xl:1.5rem;--font-size-3xl:2rem;--font-size-4xl:2.5rem;--font-size-5xl:3.5rem;--shadow-sm:0 2px 8px rgba(0,0,0,0.06);--shadow-md:0 4px 16px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);--shadow-xl:0 20px 64px rgba(0,0,0,0.15);--transition-fast:0.15s cubic-bezier(0.4,0,0.2,1);--transition-base:0.3s cubic-bezier(0.4,0,0.2,1);--transition-slow:0.5s cubic-bezier(0.4,0,0.2,1)}body{color:var(--text-primary);background-color:var(--bg-color);line-height:1.6;overflow-x:hidden;font-weight:400;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}h1,h2,h3,h4,h5,h6{font-weight:500;line-height:1.2;letter-spacing:-0.02em}.navbar{position:fixed;top:0;width:100%;background:rgba(255,255,255,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:1000;border-bottom:1px solid rgba(0,0,0,0.06);transition:all var(--transition-base)}.nav-container{max-width:1400px;margin:0 auto;padding:var(--spacing-md) var(--spacing-lg);display:flex;justify-content:space-between;align-items:center}.logo h1{font-family:'Space Grotesk',sans-serif;font-size:var(--font-size-xl);font-weight:700;letter-spacing:0.02em;background:linear-gradient(135deg,var(--primary-color),var(--premium-gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.tagline{font-size:var(--font-size-xs);color:var(--text-tertiary);letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-top:2px}.nav-menu{display:flex;align-items:center;gap:var(--spacing-xl)}.nav-link{text-decoration:none;color:var(--text-secondary);font-size:var(--font-size-sm);font-weight:500;transition:all var(--transition-base);position:relative;padding:var(--spacing-xs) 0;letter-spacing:0.02em}.nav-language{position:relative;margin-left:var(--spacing-md)}.lang-select{background:transparent;border:1px solid transparent;border-radius:6px;padding:var(--spacing-xs) var(--spacing-sm);font-size:var(--font-size-sm);font-weight:500;cursor:pointer;transition:all var(--transition-base);font-family:'Space Grotesk',sans-serif;letter-spacing:0.02em;color:var(--text-secondary);appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');background-repeat:no-repeat;background-position:right 8px center;background-size:8px;padding-right:24px;min-width:50px}.mobile-menu-toggle{display:none;flex-direction:column;gap:4px;cursor:pointer;z-index:1001}.mobile-menu-toggle span{width:25px;height:2px;background-color:var(--primary-color);transition:transform var(--transition-base);border-radius:1px}.hero{margin-top:80px;padding:10rem var(--spacing-lg);background:linear-gradient(135deg,var(--bg-color) 0%,var(--premium-warm) 100%);min-height:70vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.hero-content{max-width:900px;text-align:center;z-index:2}.hero-title{font-family:'Space Grotesk',sans-serif;font-size:var(--font-size-5xl);font-weight:500;margin-bottom:var(--spacing-md);letter-spacing:-0.02em;line-height:1.1;background:linear-gradient(135deg,var(--primary-color) 0%,var(--premium-charcoal) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:normal}.hero-subtitle{font-size:var(--font-size-lg);color:var(--text-secondary);line-height:1.8;font-weight:300;max-width:600px;margin:0 auto}.filters{padding:var(--spacing-xl) var(--spacing-lg);background:var(--bg-secondary);border-bottom:1px solid var(--border-color);position:relative}.filter-container{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--spacing-lg)}.filter-group{display:flex;gap:var(--spacing-sm);flex-wrap:wrap}.filter-btn{padding:var(--spacing-sm) var(--spacing-md);background:rgba(255,255,255,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:50px;font-size:var(--font-size-sm);font-weight:500;cursor:pointer;transition:all var(--transition-base);font-family:inherit;letter-spacing:0.02em;position:relative;overflow:hidden}.filter-btn.active{background:linear-gradient(135deg,var(--primary-color),var(--premium-charcoal));color:white;border-color:var(--primary-color);transform:translateY(-2px);box-shadow:var(--shadow-lg)}.projects{padding:6rem var(--spacing-lg);background:var(--bg-color)}.projects-grid{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:var(--spacing-xl)}.random-gallery-container{margin-top:3rem;overflow:hidden}.random-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:0.5rem}@media (max-width:768px){.nav-menu{display:none;position:fixed;top:80px;left:0;width:100%;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);flex-direction:column;padding:var(--spacing-lg);border-bottom:1px solid var(--border-color);z-index:999}.nav-menu.active{display:flex}.mobile-menu-toggle{display:flex}.hero-title{font-size:var(--font-size-4xl)}.hero-subtitle{font-size:var(--font-size-base)}.filter-container{flex-direction:column;align-items:stretch}.projects-grid{grid-template-columns:1fr}.hero{padding:6rem var(--spacing-md)}.projects,.filters{padding:4rem var(--spacing-md)}.random-gallery{grid-template-columns:repeat(2,1fr)}}@media (max-width:1024px){:root{--font-size-5xl:3rem;--font-size-4xl:2rem;--spacing-xl:2rem}.projects-grid{grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:var(--spacing-lg)}}</style>
     <!-- Load non-critical styles asynchronously -->
-    <link rel="preload" href="styles-enhanced.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="styles-enhanced.min.css"></noscript>
-    <link rel="preload" href="mobile-optimizations.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="mobile-optimizations.min.css"></noscript>
+    <link rel="preload" href="/styles-enhanced.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles-enhanced.min.css"></noscript>
+    <link rel="preload" href="/mobile-optimizations.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/mobile-optimizations.min.css"></noscript>
     <!-- Removed performance-optimizer.js and enhanced-lazy-loading.js - functionality integrated in other scripts -->
-    <script src="remove-blur-fix.js" defer></script>
+    <script src="/remove-blur-fix.js" defer></script>
 </head>
 <body>
     <nav class="navbar">
@@ -124,11 +124,11 @@
                     <video 
                         id="arteamo-video" 
                         class="about-video"
-                        poster="Apartament%20Flavia%20Garden%202024/cam01.jpg"
+                        poster="/Apartament%20Flavia%20Garden%202024/cam01.jpg"
                         muted
                         playsinline
                         preload="metadata">
-                        <source src="ArteamoAd.mp4" type="video/mp4">
+                        <source src="/ArteamoAd.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
                     <div class="video-overlay">
@@ -194,18 +194,18 @@
 
     <!-- Removed font-tester.js - development code not needed in production -->
     <!-- Core scripts with defer for non-blocking loading -->
-    <script src="translations.js" defer></script>
-    <script src="language-switcher-v2.js" defer></script>
-    <script src="project-config.js" defer></script>
-    <script src="script-enhanced.js" defer></script>
-    <script src="dynamic-projects.js" defer></script>
-    <script src="awards-handler.js" defer></script>
-    <script src="site-settings.js"></script>
-    <script src="contact-form-netlify.js" defer></script>
-    <script src="gallery-init.js" defer></script>
-    <script src="video-player.js" defer></script>
+    <script src="/translations.js" defer></script>
+    <script src="/language-switcher-v2.js" defer></script>
+    <script src="/project-config.js" defer></script>
+    <script src="/script-enhanced.js" defer></script>
+    <script src="/dynamic-projects.js" defer></script>
+    <script src="/awards-handler.js" defer></script>
+    <script src="/site-settings.js"></script>
+    <script src="/contact-form-netlify.js" defer></script>
+    <script src="/gallery-init.js" defer></script>
+    <script src="/video-player.js" defer></script>
     <!-- Mobile video intro -->
-    <script src="mobile-video-intro.js"></script>
+    <script src="/mobile-video-intro.js"></script>
     
     <!-- Update footer year from deployment date -->
     <script>
