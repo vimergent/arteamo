@@ -287,15 +287,11 @@
     prettyURLs = true
     trailingSlash = false
 
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
-  [plugins.inputs]
-    [plugins.inputs.audits]
-      performance = 0.9
-      accessibility = 0.9
-      best-practices = 0.9
-      seo = 0.9
-    output_path = "reports/lighthouse.html"
+# Lighthouse plugin removed - install from Netlify UI instead
+# To add Lighthouse plugin:
+# 1. Go to Netlify dashboard > Plugins
+# 2. Search for and install "Lighthouse"
+# 3. Configure thresholds in plugin settings
 
 # Checklinks plugin disabled due to false positives with Google Fonts preconnect
 # [[plugins]]
