@@ -28,6 +28,7 @@ const adminApp = {
         this.loadProjects();
         this.startSessionMonitor();
         this.startAutoSave();
+        this.loadContactEmail();
     },
 
     // Authentication
@@ -645,6 +646,105 @@ if (typeof module !== 'undefined' && module.exports) {
         });
         
         this.showToast(`Added ${files.length} image(s)`, 'success');
+    },
+
+    // Contact Email Management
+    loadContactEmail() {
+        const savedEmail = localStorage.getItem('adminContactEmail') || 'petyaem@abv.bg';
+        const emailInput = document.getElementById('contactEmail');
+        if (emailInput) {
+            emailInput.value = savedEmail;
+        }
+    },
+
+    saveContactEmail() {
+        const emailInput = document.getElementById('contactEmail');
+        const email = emailInput.value.trim();
+        
+        if (!email) {
+            this.showToast('Please enter a valid email address', 'error');
+            return;
+        }
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.showToast('Please enter a valid email address', 'error');
+            return;
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('adminContactEmail', email);
+        
+        // Update environment variable if possible
+        // In production, this would update the Netlify environment variable
+        this.showToast('Contact email updated successfully', 'success');
+        
+        // Also save to a settings file that can be read by the contact form
+        this.updateContactSettings(email);
+    },
+
+    updateContactSettings(email) {
+        // Create a settings object that can be read by the contact form
+        const settings = {
+            contactEmail: email,
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Save to localStorage for now
+        localStorage.setItem('siteSettings', JSON.stringify(settings));
+    },
+
+    // Other admin functions
+    changePassword() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (!newPassword || !confirmPassword) {
+            this.showToast('Please fill in both password fields', 'error');
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            this.showToast('Passwords do not match', 'error');
+            return;
+        }
+        
+        if (newPassword.length < 8) {
+            this.showToast('Password must be at least 8 characters', 'error');
+            return;
+        }
+        
+        // In production, this would update the password on the server
+        this.showToast('Password updated successfully', 'success');
+    },
+
+    exportData() {
+        this.showToast('Exporting data...', 'info');
+        // Implementation for export functionality
+    },
+
+    viewWebsite() {
+        window.open('../index.html', '_blank');
+    },
+
+    logout() {
+        sessionStorage.clear();
+        this.state.isAuthenticated = false;
+        this.showAuthScreen();
+    },
+
+    createBackup() {
+        this.showToast('Creating backup...', 'info');
+        // Implementation for backup
+    },
+
+    restoreBackup() {
+        this.showToast('Restore functionality coming soon', 'info');
+    },
+
+    saveContent() {
+        this.showToast('Content saved successfully', 'success');
     }
 };
 

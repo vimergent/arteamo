@@ -170,6 +170,16 @@
 
                 <div class="settings-panel">
                     <div class="settings-group">
+                        <h3>Contact Settings</h3>
+                        <div class="form-group">
+                            <label>Contact Form Email</label>
+                            <input type="email" class="form-input" id="contactEmail" placeholder="email@example.com">
+                            <small>Email address where contact form submissions will be sent</small>
+                        </div>
+                        <button class="btn btn-secondary" onclick="adminApp.saveContactEmail()">Update Email</button>
+                    </div>
+
+                    <div class="settings-group">
                         <h3>Security</h3>
                         <div class="form-group">
                             <label>Change Admin Password</label>

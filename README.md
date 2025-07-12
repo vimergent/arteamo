@@ -30,7 +30,7 @@ The CMS admin panel is available at `/admin/` with password: `arteamo2024admin`
 
 ## Contact
 
-- Email: [Your contact email]
+- Email: petyaem@abv.bg
 - Founded: 2008 by Eng. Petya Petrova
 
 © 2024 Studio Arteamo. All rights reserved.

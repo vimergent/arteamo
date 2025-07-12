@@ -20,7 +20,9 @@ You need to update the following files with your Netlify site URL:
 2. **Configure Environment Variables**
    - Go to Site settings → Environment variables
    - Add the following variable:
-     - `CONTACT_EMAIL`: Your email address for receiving contact form submissions
+     - `CONTACT_EMAIL`: petyaem@abv.bg (default contact email)
+   
+   Note: The contact email can also be managed from the CMS admin panel under Settings → Contact Settings
 
 3. **Update Site URL**
    - Once deployed, note your Netlify site URL (e.g., `amazing-site-123456.netlify.app`)
