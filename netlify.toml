@@ -156,26 +156,27 @@
   status = 301
 
 # Language-based redirects with geo-targeting
-[[redirects]]
-  from = "/*"
-  to = "/bg/:splat"
-  status = 302
-  conditions = {Country = ["BG"]}
-  headers = {X-Country = "bg"}
-
-[[redirects]]
-  from = "/*"
-  to = "/ru/:splat"
-  status = 302
-  conditions = {Country = ["RU", "BY", "KZ", "UA"]}
-  headers = {X-Country = "ru"}
-
-[[redirects]]
-  from = "/*"
-  to = "/es/:splat"
-  status = 302
-  conditions = {Country = ["ES", "MX", "AR", "CO", "CL"]}
-  headers = {X-Country = "es"}
+# DISABLED - Causes issues with asset loading from language-specific URLs
+# [[redirects]]
+#   from = "/*"
+#   to = "/bg/:splat"
+#   status = 302
+#   conditions = {Country = ["BG"]}
+#   headers = {X-Country = "bg"}
+# 
+# [[redirects]]
+#   from = "/*"
+#   to = "/ru/:splat"
+#   status = 302
+#   conditions = {Country = ["RU", "BY", "KZ", "UA"]}
+#   headers = {X-Country = "ru"}
+# 
+# [[redirects]]
+#   from = "/*"
+#   to = "/es/:splat"
+#   status = 302
+#   conditions = {Country = ["ES", "MX", "AR", "CO", "CL"]}
+#   headers = {X-Country = "es"}
 
 # Language-specific clean URLs
 [[redirects]]
