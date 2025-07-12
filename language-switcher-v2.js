@@ -266,6 +266,19 @@ class LanguageSwitcher {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if we're on a language-specific URL and redirect to root if needed
+    const path = window.location.pathname;
+    if (path.match(/^\/(bg|en|ru|es|he|zh)\//)) {
+        // Extract language from URL
+        const urlLang = path.match(/^\/([a-z]{2})\//)[1];
+        // Store the language preference
+        localStorage.setItem('selectedLanguage', urlLang);
+        localStorage.setItem('language', urlLang);
+        // Redirect to root to avoid asset loading issues
+        window.location.href = '/';
+        return;
+    }
+    
     // Give translations a moment to load
     setTimeout(() => {
         new LanguageSwitcher();

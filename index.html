@@ -195,6 +195,15 @@
     <!-- Removed font-tester.js - development code not needed in production -->
     <!-- Core scripts with defer for non-blocking loading -->
     <script src="/translations.js" defer></script>
+    <!-- Ensure translations are available before language switcher -->
+    <script>
+        // Wait for translations to load before initializing language switcher
+        window.addEventListener('load', function() {
+            if (typeof translations === 'undefined') {
+                console.error('Translations failed to load. Check network tab for errors.');
+            }
+        });
+    </script>
     <script src="/language-switcher-v2.js" defer></script>
     <script src="/project-config.js" defer></script>
     <script src="/script-enhanced.js" defer></script>
