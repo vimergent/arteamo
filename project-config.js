@@ -24,8 +24,8 @@ const projectConfig = {
         category: 'residential',
         year: 2024,
         area: 120,
-        coverImage: 'cam01.jpg',
-        images: ['cam01.jpg', 'cam02.jpg', 'cam03.jpg', 'cam04.jpg', 'cam05.jpg', 'cam06.jpg', 'cam07.jpg', 'cam08.jpg', 'cam09.jpg', 'cam010.jpg', 'cam011.jpg', 'cam012.jpg', 'cam013.jpg', 'cam014.jpg', 'cam015.jpg', 'cam016.jpg', 'cam017.jpg', 'cam018.jpg', 'cam019.jpg', 'cam020.jpg', 'cam021.jpg', 'cam022.jpg', 'cam023.jpg', 'cam024_1.jpg', 'cam025_1.jpg', 'cam026_1.jpg', 'cam028_1.jpg', 'cam029_1.jpg', 'cam030_1.jpg']
+        coverImage: 'Flavia-1.jpg',
+        images: ['Flavia-1.jpg', 'Flavia-2.jpg', 'Flavia-3.jpg', 'Flavia-4.jpg', 'Flavia-5.jpg', 'Flavia-6.jpg', 'Flavia-7.jpg', 'Flavia-8.jpg', 'Flavia-9.jpg', 'Flavia-10.jpg', 'Flavia-11.jpg', 'Flavia-12.jpg', 'Flavia-13.jpg', 'Flavia-14.jpg', 'Flavia-15.jpg', 'Flavia-16.jpg', 'Flavia-17.jpg', 'Flavia-18.jpg', 'Flavia-19.jpg', 'Flavia-20.jpg', 'Flavia-21.jpg', 'Flavia-22.jpg', 'Flavia-23.jpg', 'Flavia-24.jpg', 'Flavia-25.jpg', 'Flavia-26.jpg', 'Flavia-27.jpg', 'Flavia-28.jpg', 'Flavia-29.jpg', 'Flavia-30.jpg', 'Flavia-31.jpg', 'Flavia-32.jpg', 'Flavia-33.jpg', 'Flavia-34.jpg', 'Flavia-35.jpg', 'Flavia-36.jpg', 'Flavia-37.jpg', 'Flavia-38.jpg', 'Flavia-39.jpg', 'Flavia-40.jpg', 'Flavia-41.jpg', 'Flavia-42.jpg', 'Flavia-43.jpg', 'Flavia-44.jpg', 'Flavia-45.jpg', 'Flavia-46.jpg', 'Flavia-47.jpg', 'Flavia-48.jpg', 'Flavia-49.jpg', 'Flavia-50.jpg', 'Flavia-51.jpg', 'Flavia-52.jpg', 'Flavia-53.jpg', 'Flavia-54.jpg', 'Flavia-55.jpg']
     },
     'Elite Clinic 2021': {
         name: {
