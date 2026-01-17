@@ -178,13 +178,22 @@
     };
     
     // Auto-initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
+    // But only on admin pages (not homepage)
+    const isAdminPage = window.location.pathname.includes('/admin');
+    
+    if (isAdminPage) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                IdentityManager.init();
+            });
+        } else {
+            // DOM already ready
             IdentityManager.init();
-        });
+        }
     } else {
-        // DOM already ready
-        IdentityManager.init();
+        // On homepage, just make IdentityManager available but don't auto-init
+        // It will be used if needed for token handling
+        console.log('[IdentityManager] Available on homepage, will init if needed');
     }
     
     // Make IdentityManager globally available
