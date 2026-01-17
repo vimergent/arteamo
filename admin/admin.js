@@ -2,6 +2,40 @@
 // Enhanced security and functionality
 
 const adminApp = {
+    // Security utilities
+    security: {
+        // Escape HTML to prevent XSS attacks
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        },
+        
+        // Sanitize user input
+        sanitizeInput(input) {
+            if (typeof input !== 'string') return input;
+            return input.trim().replace(/[<>]/g, '');
+        },
+        
+        // Create element safely
+        createSafeElement(tag, attributes = {}, textContent = '') {
+            const element = document.createElement(tag);
+            Object.entries(attributes).forEach(([key, value]) => {
+                if (key === 'className') {
+                    element.className = value;
+                } else if (key.startsWith('data-')) {
+                    element.setAttribute(key, this.escapeHtml(String(value)));
+                } else {
+                    element.setAttribute(key, this.escapeHtml(String(value)));
+                }
+            });
+            if (textContent) {
+                element.textContent = textContent;
+            }
+            return element;
+        }
+    },
+
     // Configuration
     config: {
         maxLoginAttempts: 3,
@@ -200,7 +234,10 @@ const adminApp = {
         this.state.currentProject = null;
         this.openModal('New Project');
         document.getElementById('projectForm').reset();
-        document.getElementById('imageList').innerHTML = '';
+        const imageList = document.getElementById('imageList');
+        while (imageList.firstChild) {
+            imageList.removeChild(imageList.firstChild);
+        }
     },
 
     editProject(projectId) {
@@ -222,24 +259,25 @@ const adminApp = {
     },
 
     saveProject(formData) {
+        // Sanitize all inputs
         const project = {
             id: this.state.currentProject?.id || this.generateId(),
-            folder: formData.get('folder'),
+            folder: this.security.sanitizeInput(formData.get('folder') || ''),
             name: {
-                en: formData.get('name_en'),
-                bg: formData.get('name_bg') || formData.get('name_en'),
-                ru: formData.get('name_ru') || formData.get('name_en'),
-                es: formData.get('name_es') || formData.get('name_en'),
+                en: this.security.sanitizeInput(formData.get('name_en') || ''),
+                bg: this.security.sanitizeInput(formData.get('name_bg') || formData.get('name_en') || ''),
+                ru: this.security.sanitizeInput(formData.get('name_ru') || formData.get('name_en') || ''),
+                es: this.security.sanitizeInput(formData.get('name_es') || formData.get('name_en') || ''),
             },
             description: {
-                en: formData.get('description_en'),
-                bg: formData.get('description_bg') || formData.get('description_en'),
-                ru: formData.get('description_ru') || formData.get('description_en'),
-                es: formData.get('description_es') || formData.get('description_en'),
+                en: this.security.sanitizeInput(formData.get('description_en') || ''),
+                bg: this.security.sanitizeInput(formData.get('description_bg') || formData.get('description_en') || ''),
+                ru: this.security.sanitizeInput(formData.get('description_ru') || formData.get('description_en') || ''),
+                es: this.security.sanitizeInput(formData.get('description_es') || formData.get('description_en') || ''),
             },
-            category: formData.get('category'),
-            year: parseInt(formData.get('year')),
-            area: formData.get('area'),
+            category: this.security.sanitizeInput(formData.get('category') || ''),
+            year: parseInt(formData.get('year')) || new Date().getFullYear(),
+            area: this.security.sanitizeInput(formData.get('area') || ''),
             coverImage: this.getProjectImages()[0] || '',
             images: this.getProjectImages(),
             visible: true,
@@ -274,23 +312,50 @@ const adminApp = {
             return matchesSearch && matchesCategory;
         });
 
-        grid.innerHTML = filteredProjects.map(project => `
-            <div class="project-admin-card">
-                <div class="project-admin-image">
-                    <img src="../../${project.folder}/${project.coverImage}" 
-                         alt="${project.name.en}"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                </div>
-                <div class="project-admin-info">
-                    <h3 class="project-admin-title">${project.name.en}</h3>
-                    <p class="project-admin-meta">${project.category} • ${project.year} • ${project.area}</p>
-                    <div class="project-admin-actions">
-                        <button class="btn btn-secondary" onclick="adminApp.editProject('${project.id}')">Edit</button>
-                        <button class="btn btn-ghost" onclick="adminApp.deleteProject('${project.id}')">Delete</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        // Clear grid safely
+        while (grid.firstChild) {
+            grid.removeChild(grid.firstChild);
+        }
+
+        // Create project cards safely
+        filteredProjects.forEach(project => {
+            const card = this.security.createSafeElement('div', { className: 'project-admin-card' });
+            
+            // Image container
+            const imageContainer = this.security.createSafeElement('div', { className: 'project-admin-image' });
+            const img = this.security.createSafeElement('img', {
+                src: `../../${this.security.escapeHtml(project.folder)}/${this.security.escapeHtml(project.coverImage)}`,
+                alt: this.security.escapeHtml(project.name.en)
+            });
+            img.onerror = function() {
+                this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22%3ENo Image%3C/text%3E%3C/svg%3E';
+            };
+            imageContainer.appendChild(img);
+            
+            // Info container
+            const infoContainer = this.security.createSafeElement('div', { className: 'project-admin-info' });
+            const title = this.security.createSafeElement('h3', { className: 'project-admin-title' }, project.name.en);
+            const meta = this.security.createSafeElement('p', { className: 'project-admin-meta' }, 
+                `${project.category} • ${project.year} • ${project.area}`);
+            
+            // Actions container
+            const actionsContainer = this.security.createSafeElement('div', { className: 'project-admin-actions' });
+            const editBtn = this.security.createSafeElement('button', { className: 'btn btn-secondary' }, 'Edit');
+            editBtn.onclick = () => this.editProject(project.id);
+            const deleteBtn = this.security.createSafeElement('button', { className: 'btn btn-ghost' }, 'Delete');
+            deleteBtn.onclick = () => this.deleteProject(project.id);
+            
+            actionsContainer.appendChild(editBtn);
+            actionsContainer.appendChild(deleteBtn);
+            
+            infoContainer.appendChild(title);
+            infoContainer.appendChild(meta);
+            infoContainer.appendChild(actionsContainer);
+            
+            card.appendChild(imageContainer);
+            card.appendChild(infoContainer);
+            grid.appendChild(card);
+        });
     },
 
     populateProjectForm(project) {
@@ -311,14 +376,33 @@ const adminApp = {
 
     displayProjectImages(images) {
         const list = document.getElementById('imageList');
-        list.innerHTML = images.map((img, index) => `
-            <div class="image-item" data-image="${img}">
-                <img src="../../${this.state.currentProject?.folder || 'temp'}/${img}" 
-                     alt="${img}"
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22 font-size=%2212%22%3E${img}%3C/text%3E%3C/svg%3E'">
-                <button class="image-item-remove" onclick="adminApp.removeImage(${index})">×</button>
-            </div>
-        `).join('');
+        // Clear list safely
+        while (list.firstChild) {
+            list.removeChild(list.firstChild);
+        }
+        
+        // Create image items safely
+        images.forEach((img, index) => {
+            const imageItem = this.security.createSafeElement('div', { 
+                className: 'image-item',
+                'data-image': img
+            });
+            
+            const imgElement = this.security.createSafeElement('img', {
+                src: `../../${this.security.escapeHtml(this.state.currentProject?.folder || 'temp')}/${this.security.escapeHtml(img)}`,
+                alt: this.security.escapeHtml(img)
+            });
+            imgElement.onerror = function() {
+                this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22 font-size=%2212%22%3ENo Image%3C/text%3E%3C/svg%3E';
+            };
+            
+            const removeBtn = this.security.createSafeElement('button', { className: 'image-item-remove' }, '×');
+            removeBtn.onclick = () => this.removeImage(index);
+            
+            imageItem.appendChild(imgElement);
+            imageItem.appendChild(removeBtn);
+            list.appendChild(imageItem);
+        });
     },
 
     getProjectImages() {
@@ -633,10 +717,22 @@ if (typeof module !== 'undefined' && module.exports) {
                 
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    imageItem.innerHTML = `
-                        <img src="${e.target.result}" alt="${file.name}">
-                        <button class="image-item-remove" onclick="adminApp.removeImage(${currentImages.length})">×</button>
-                    `;
+                    // Clear and create safely
+                    while (imageItem.firstChild) {
+                        imageItem.removeChild(imageItem.firstChild);
+                    }
+                    
+                    const img = this.security.createSafeElement('img', {
+                        src: e.target.result,
+                        alt: this.security.escapeHtml(file.name)
+                    });
+                    
+                    const removeBtn = this.security.createSafeElement('button', { className: 'image-item-remove' }, '×');
+                    const currentIndex = currentImages.length;
+                    removeBtn.onclick = () => this.removeImage(currentIndex);
+                    
+                    imageItem.appendChild(img);
+                    imageItem.appendChild(removeBtn);
                 };
                 reader.readAsDataURL(file);
                 
