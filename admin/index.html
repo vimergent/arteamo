@@ -350,6 +350,20 @@
     <script>
       // Wait for DOM and scripts to load
       document.addEventListener('DOMContentLoaded', function() {
+        // Check for recovery token in URL (password reset)
+        const hash = window.location.hash;
+        if (hash && hash.includes('recovery_token=')) {
+          // Identity widget will handle the recovery token automatically
+          // Just make sure Identity is initialized
+          if (window.netlifyIdentity) {
+            window.netlifyIdentity.init({
+              APIUrl: window.location.origin + "/.netlify/identity"
+            });
+            // The widget will automatically show password reset form
+            return;
+          }
+        }
+        
         // Initialize Netlify Identity widget
         if (window.netlifyIdentity) {
           window.netlifyIdentity.on("init", (user) => {
