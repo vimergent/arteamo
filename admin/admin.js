@@ -57,6 +57,9 @@ const adminApp = {
 
     // Initialize
     init() {
+        // Set up Netlify Identity listeners first
+        this.setupIdentityListeners();
+        // Then check authentication
         this.checkAuth();
         this.setupEventListeners();
         this.loadProjects();
@@ -65,27 +68,33 @@ const adminApp = {
         this.loadContactEmail();
     },
 
-    // Authentication
+    // Authentication - Netlify Identity
     async checkAuth() {
-        const token = sessionStorage.getItem('adminToken');
-        const lastActivity = sessionStorage.getItem('lastActivity');
-        
-        if (token && lastActivity) {
-            const timeSinceActivity = Date.now() - parseInt(lastActivity);
-            if (timeSinceActivity < this.config.sessionTimeout) {
-                this.state.isAuthenticated = true;
-                this.showAdminInterface();
-                return;
-            }
+        // Wait for Netlify Identity to initialize
+        if (typeof netlifyIdentity === 'undefined') {
+            // Identity widget not loaded yet, wait a bit
+            setTimeout(() => this.checkAuth(), 100);
+            return;
         }
+
+        // Check if user is authenticated via Netlify Identity
+        const user = netlifyIdentity.currentUser();
         
-        this.showAuthScreen();
+        if (user) {
+            // User is authenticated
+            this.state.isAuthenticated = true;
+            this.state.currentUser = user;
+            this.showAdminInterface();
+            this.showToast(`Welcome back, ${user.email}`, 'success');
+        } else {
+            // User not authenticated, show login screen
+            this.showAuthScreen();
+        }
     },
 
     showAuthScreen() {
         document.getElementById('authScreen').style.display = 'flex';
         document.getElementById('adminInterface').style.display = 'none';
-        document.getElementById('authPassword').focus();
     },
 
     showAdminInterface() {
@@ -94,77 +103,60 @@ const adminApp = {
         this.renderProjects();
     },
 
-    async authenticate(password) {
-        // Check lockout
-        if (this.state.lockoutUntil && Date.now() < this.state.lockoutUntil) {
-            const remainingTime = Math.ceil((this.state.lockoutUntil - Date.now()) / 1000 / 60);
-            this.showError(`Too many failed attempts. Try again in ${remainingTime} minutes.`);
+    openLogin() {
+        // Open Netlify Identity login modal
+        if (typeof netlifyIdentity !== 'undefined') {
+            netlifyIdentity.open('login');
+        } else {
+            this.showError('Netlify Identity is not loaded. Please refresh the page.');
+        }
+    },
+
+    setupIdentityListeners() {
+        // Set up Netlify Identity event listeners
+        if (typeof netlifyIdentity === 'undefined') {
+            // Wait for Identity to load
+            setTimeout(() => this.setupIdentityListeners(), 100);
             return;
         }
 
-        // Validate password
-        const isValid = await this.validatePassword(password);
-        
-        if (isValid) {
-            // Success
+        // Listen for successful login
+        netlifyIdentity.on('login', (user) => {
+            console.log('[Identity] User logged in:', user.email);
             this.state.isAuthenticated = true;
-            this.state.loginAttempts = 0;
-            this.state.lockoutUntil = null;
-            
-            // Create session
-            const token = this.generateToken();
-            sessionStorage.setItem('adminToken', token);
-            sessionStorage.setItem('lastActivity', Date.now());
-            
+            this.state.currentUser = user;
+            netlifyIdentity.close();
             this.showAdminInterface();
-            this.showToast('Welcome to Admin Panel', 'success');
-        } else {
-            // Failed attempt
-            this.state.loginAttempts++;
-            
-            if (this.state.loginAttempts >= this.config.maxLoginAttempts) {
-                this.state.lockoutUntil = Date.now() + this.config.lockoutTime;
-                this.showError(`Too many failed attempts. Account locked for 15 minutes.`);
-            } else {
-                const remaining = this.config.maxLoginAttempts - this.state.loginAttempts;
-                this.showError(`Invalid password. ${remaining} attempts remaining.`);
-            }
-        }
-    },
+            this.showToast(`Welcome, ${user.email}`, 'success');
+        });
 
-    async validatePassword(password) {
-        // In production, this should validate against a hashed password
-        // Updated with secure password - Phase 0.1.1 (2026-01-17)
-        // Strong password: 20 characters, mixed case, numbers, special chars
-        
-        // Trim whitespace to prevent input issues
-        const trimmedPassword = (password || '').trim();
-        const validPassword = 'dGMKAj2bjsb4TrBi2iSz';
-        
-        // Simulate processing time to prevent timing attacks
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Validate password
-        const isValid = trimmedPassword === validPassword;
-        
-        // Debug logging (remove in production)
-        if (typeof console !== 'undefined' && console.log) {
-            console.log('[Auth Debug] Password length:', trimmedPassword.length, 'Valid:', isValid);
-        }
-        
-        return isValid;
-    },
+        // Listen for logout
+        netlifyIdentity.on('logout', () => {
+            console.log('[Identity] User logged out');
+            this.state.isAuthenticated = false;
+            this.state.currentUser = null;
+            this.showAuthScreen();
+            this.showToast('You have been logged out', 'info');
+        });
 
-    generateToken() {
-        return Array.from(crypto.getRandomValues(new Uint8Array(32)))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
+        // Listen for errors
+        netlifyIdentity.on('error', (err) => {
+            console.error('[Identity] Error:', err);
+            this.showError('Authentication error. Please try again.');
+        });
     },
 
     logout() {
-        sessionStorage.removeItem('adminToken');
-        sessionStorage.removeItem('lastActivity');
-        this.state.isAuthenticated = false;
+        // Logout via Netlify Identity
+        if (typeof netlifyIdentity !== 'undefined') {
+            netlifyIdentity.logout();
+        } else {
+            // Fallback if Identity not available
+            this.state.isAuthenticated = false;
+            this.state.currentUser = null;
+            this.showAuthScreen();
+        }
+    },
         this.showAuthScreen();
         this.showToast('Logged out successfully', 'success');
     },
@@ -653,13 +645,13 @@ if (typeof module !== 'undefined' && module.exports) {
         document.addEventListener('click', () => this.updateActivity());
         document.addEventListener('keydown', () => this.updateActivity());
 
-        // Auth form
-        document.getElementById('authForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const passwordInput = document.getElementById('authPassword');
-            const password = passwordInput.value.trim(); // Trim whitespace
-            this.authenticate(password);
-        });
+        // Login button (handled by openLogin() which opens Identity widget)
+        const loginButton = document.getElementById('loginButton');
+        if (loginButton) {
+            loginButton.addEventListener('click', () => {
+                this.openLogin();
+            });
+        }
 
         // Project form
         document.getElementById('projectForm').addEventListener('submit', (e) => {
@@ -837,22 +829,56 @@ if (typeof module !== 'undefined' && module.exports) {
 
     // Other admin functions
     changePassword() {
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (!newPassword || !confirmPassword) {
-            this.showToast('Please fill in both password fields', 'error');
-            return;
-        }
-        
-        if (newPassword !== confirmPassword) {
-            this.showToast('Passwords do not match', 'error');
-            return;
-        }
-        
-        if (newPassword.length < 8) {
-            this.showToast('Password must be at least 8 characters', 'error');
-            return;
+        // Netlify Identity handles password changes through their widget
+        // Redirect to Identity password change or use Identity API
+        if (typeof netlifyIdentity !== 'undefined' && netlifyIdentity.currentUser()) {
+            // Use Identity's password update API
+            const user = netlifyIdentity.currentUser();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!newPassword || !confirmPassword) {
+                this.showToast('Please fill in both password fields', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                this.showToast('Passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                this.showToast('Password must be at least 8 characters', 'error');
+                return;
+            }
+            
+            // Update password via Identity API
+            const identityUrl = `${window.location.origin}/.netlify/identity`;
+            fetch(`${identityUrl}/user`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token.access_token}`
+                },
+                body: JSON.stringify({
+                    password: newPassword
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    this.showToast('Password updated successfully', 'success');
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    this.showToast('Failed to update password. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Password update error:', error);
+                this.showToast('Error updating password. Please try again.', 'error');
+            });
+        } else {
+            this.showToast('Please log in first', 'error');
         }
         
         // In production, this would update the password on the server

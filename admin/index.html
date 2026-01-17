@@ -6,6 +6,8 @@
     <title>Studio Arteamo Admin - Website Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-styles.css">
+    <!-- Netlify Identity Widget -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
     <!-- Authentication Screen -->
@@ -14,22 +16,13 @@
             <div class="auth-box">
                 <h1 class="auth-title">Studio Arteamo</h1>
                 <p class="auth-subtitle">Admin Access</p>
-                <form id="authForm" class="auth-form">
-                    <div class="form-group">
-                        <input 
-                            type="password" 
-                            id="authPassword" 
-                            class="form-input" 
-                            placeholder="Enter password"
-                            required
-                            autocomplete="current-password"
-                        >
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <span id="authButtonText">Access Admin Panel</span>
+                <div class="auth-form">
+                    <button type="button" class="btn btn-primary" id="loginButton" onclick="adminApp.openLogin()">
+                        <span id="authButtonText">Log in with Netlify Identity</span>
                     </button>
                     <div id="authError" class="error-message"></div>
-                </form>
+                    <div id="authStatus" class="auth-status"></div>
+                </div>
                 <div class="auth-footer">
                     <a href="../" class="back-link">← Back to website</a>
                 </div>
@@ -352,5 +345,18 @@
     <script src="admin.js"></script>
     <script src="../../project-config.js"></script>
     <script src="../../translations.js"></script>
+    
+    <!-- Netlify Identity Redirect Helper -->
+    <script>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", (user) => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/admin/";
+            });
+          }
+        });
+      }
+    </script>
 </body>
 </html>
