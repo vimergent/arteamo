@@ -53,6 +53,7 @@
                 }
                 
                 // Initialize with API URL
+                // Important: Initialize BEFORE checking for tokens
                 window.netlifyIdentity.init({
                     APIUrl: window.location.origin + "/.netlify/identity"
                 });
@@ -62,6 +63,23 @@
                 
                 // Set up event listeners
                 this.setupEventListeners();
+                
+                // After initialization, check for tokens in URL and process them
+                // This handles confirmation_token, invite_token, etc.
+                setTimeout(() => {
+                    const hash = window.location.hash;
+                    if (hash) {
+                        if (hash.includes('confirmation_token=') || 
+                            hash.includes('invite_token=') ||
+                            hash.includes('recovery_token=')) {
+                            console.log('[Identity] Token in URL after init, widget should process it');
+                            // The widget will automatically show the appropriate form
+                            // For invite_token: shows password setup form
+                            // For confirmation_token: confirms email
+                            // For recovery_token: shows password reset form
+                        }
+                    }
+                }, 500);
                 
             } catch (error) {
                 console.error('[Identity] Initialization error:', error);

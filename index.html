@@ -254,9 +254,11 @@
                           hash.includes('token=');
           
           if (hasToken) {
-            // Immediately redirect to admin page with token (synchronous, no delay)
-            console.log('[Homepage] Identity token detected, redirecting to /admin');
-            window.location.replace('/admin/' + hash);
+            // Immediately redirect to admin page with token (preserve hash)
+            // Use full URL to ensure hash is preserved
+            const adminUrl = window.location.origin + '/admin' + hash;
+            console.log('[Homepage] Identity token detected, redirecting to:', adminUrl);
+            window.location.replace(adminUrl);
             // Prevent any further script execution
             return;
           }
