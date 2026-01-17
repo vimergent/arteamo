@@ -658,7 +658,8 @@ if (typeof module !== 'undefined' && module.exports) {
         // Auth form
         document.getElementById('authForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const password = document.getElementById('authPassword').value;
+            const passwordInput = document.getElementById('authPassword');
+            const password = passwordInput.value.trim(); // Trim whitespace
             this.authenticate(password);
         });
 
