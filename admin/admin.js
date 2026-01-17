@@ -685,9 +685,10 @@ if (typeof module !== 'undefined' && module.exports) {
 
     // Event Listeners
     setupEventListeners() {
-        // Track activity
-        document.addEventListener('click', () => this.updateActivity());
-        document.addEventListener('keydown', () => this.updateActivity());
+        try {
+            // Track activity
+            document.addEventListener('click', () => this.updateActivity());
+            document.addEventListener('keydown', () => this.updateActivity());
 
         // Login button (handled by openLogin() which opens Identity widget)
         const loginButton = document.getElementById('loginButton');
@@ -970,6 +971,28 @@ if (typeof module !== 'undefined' && module.exports) {
 };
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    adminApp.init();
-});
+// Wait for both DOM and Identity widget to be available
+function initializeAdmin() {
+    // Check if DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeAdmin);
+        return;
+    }
+    
+    // Check if Identity widget is loaded
+    if (typeof window.netlifyIdentity === 'undefined') {
+        // Wait a bit for Identity widget to load
+        setTimeout(initializeAdmin, 100);
+        return;
+    }
+    
+    // Initialize admin app
+    if (typeof adminApp !== 'undefined') {
+        adminApp.init();
+    } else {
+        console.error('adminApp not defined');
+    }
+}
+
+// Start initialization
+initializeAdmin();
