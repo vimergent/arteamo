@@ -242,38 +242,21 @@
     
     <!-- Netlify Identity - Handle recovery tokens and invitation tokens -->
     <script>
-      // Check for Identity tokens in URL hash (password reset, invitation, etc.)
-      const hash = window.location.hash;
-      if (hash && (
-        hash.includes('recovery_token=') ||
-        hash.includes('invite_token=') ||
-        hash.includes('confirmation_token=') ||
-        hash.includes('token=')
-      )) {
-        // Redirect to admin page with token
-        window.location.href = '/admin/' + hash;
-        // Stop execution to prevent further processing
-        throw new Error('Redirecting to admin');
-      }
-      
-      // Initialize Identity widget if present
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", (user) => {
-          // If any Identity token is present, redirect to admin
-          const hash = window.location.hash;
-          if (hash && (
-            hash.includes('recovery_token=') ||
-            hash.includes('invite_token=') ||
-            hash.includes('confirmation_token=') ||
-            hash.includes('token=')
-          )) {
-            window.location.href = '/admin/' + hash;
-          }
-        });
-        window.netlifyIdentity.init({
-          APIUrl: window.location.origin + "/.netlify/identity"
-        });
-      }
+      // IMMEDIATE redirect for Identity tokens (runs synchronously, before page loads)
+      (function() {
+        const hash = window.location.hash;
+        if (hash && (
+          hash.includes('recovery_token=') ||
+          hash.includes('invite_token=') ||
+          hash.includes('confirmation_token=') ||
+          hash.includes('token=')
+        )) {
+          // Immediately redirect to admin page with token (synchronous, no delay)
+          window.location.replace('/admin/' + hash);
+          // Prevent any further script execution
+          return;
+        }
+      })();
     </script>
 </body>
 </html>
