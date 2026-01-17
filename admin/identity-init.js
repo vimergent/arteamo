@@ -96,16 +96,28 @@
             
             // Error event - handle gracefully
             window.netlifyIdentity.on('error', (err) => {
-                console.error('[Identity] Error:', err);
-                // "User not found" is normal for invalid tokens or expired invitations
-                if (err && err.message && err.message.includes('not found')) {
-                    console.log('[Identity] User not found - this is normal for expired/invalid tokens');
-                    // Don't show error to user for this case
-                } else {
-                    // Show other errors
-                    const errorMsg = err && err.message ? err.message : 'Authentication error';
-                    console.error('[Identity] Authentication error:', errorMsg);
+                // "User not found" is normal for invalid/expired tokens - ignore it
+                if (err && err.message && (
+                    err.message.includes('not found') ||
+                    err.message.includes('User not found') ||
+                    err.message.includes('Invalid token')
+                )) {
+                    console.log('[Identity] Token invalid/expired - this is normal, user can request new invitation');
+                    // Clear any invalid tokens from URL
+                    if (window.location.hash && (
+                        window.location.hash.includes('token=') ||
+                        window.location.hash.includes('recovery_token=')
+                    )) {
+                        // Remove token from URL to prevent repeated errors
+                        const url = new URL(window.location.href);
+                        url.hash = '';
+                        window.history.replaceState({}, '', url);
+                    }
+                    return; // Don't log as error
                 }
+                
+                // Log other errors
+                console.error('[Identity] Error:', err);
             });
             
             // Init event - check for tokens

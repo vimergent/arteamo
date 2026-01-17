@@ -351,19 +351,38 @@
     <!-- Button click handler (backup to onclick) -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
+        console.log('[Admin] DOM loaded, setting up login button');
+        
         // Backup button click handler
         const loginButton = document.getElementById('loginButton');
         if (loginButton) {
+          console.log('[Admin] Login button found, adding click handler');
           loginButton.addEventListener('click', function(e) {
             e.preventDefault();
+            console.log('[Admin] Login button clicked');
+            
+            // Try IdentityManager first
             if (window.IdentityManager) {
+              console.log('[Admin] Using IdentityManager to open login');
               window.IdentityManager.openLogin();
             } else if (typeof adminApp !== 'undefined' && adminApp.openLogin) {
+              console.log('[Admin] Using adminApp to open login');
               adminApp.openLogin();
+            } else if (window.netlifyIdentity) {
+              console.log('[Admin] Using direct netlifyIdentity to open login');
+              try {
+                window.netlifyIdentity.open('login');
+              } catch (error) {
+                console.error('[Admin] Error opening login:', error);
+                alert('Error opening login. Please refresh the page.');
+              }
             } else {
-              console.error('[Admin] Cannot open login - IdentityManager and adminApp not available');
+              console.error('[Admin] Cannot open login - no Identity available');
+              alert('Netlify Identity is not loaded. Please refresh the page.');
             }
           });
+        } else {
+          console.error('[Admin] Login button not found!');
         }
       });
     </script>
