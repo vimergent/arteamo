@@ -71,14 +71,21 @@ const adminApp = {
     // Authentication - Netlify Identity
     async checkAuth() {
         // Wait for Netlify Identity to initialize
-        if (typeof netlifyIdentity === 'undefined') {
+        if (typeof window.netlifyIdentity === 'undefined') {
             // Identity widget not loaded yet, wait a bit
-            setTimeout(() => this.checkAuth(), 100);
+            setTimeout(() => this.checkAuth(), 200);
             return;
         }
 
+        // Initialize Identity if not already done
+        if (window.netlifyIdentity && !window.netlifyIdentity._initialized) {
+            window.netlifyIdentity.init({
+                APIUrl: window.location.origin + "/.netlify/identity"
+            });
+        }
+
         // Check if user is authenticated via Netlify Identity
-        const user = netlifyIdentity.currentUser();
+        const user = window.netlifyIdentity.currentUser();
         
         if (user) {
             // User is authenticated
@@ -104,34 +111,66 @@ const adminApp = {
     },
 
     openLogin() {
+        console.log('[Auth] openLogin called');
+        console.log('[Auth] netlifyIdentity available:', typeof netlifyIdentity !== 'undefined');
+        
         // Open Netlify Identity login modal
-        if (typeof netlifyIdentity !== 'undefined') {
-            netlifyIdentity.open('login');
+        if (typeof netlifyIdentity !== 'undefined' && netlifyIdentity) {
+            try {
+                console.log('[Auth] Opening Identity modal...');
+                netlifyIdentity.open('login');
+            } catch (error) {
+                console.error('[Auth] Error opening Identity:', error);
+                this.showError('Error opening login. Please refresh the page.');
+            }
         } else {
+            console.error('[Auth] Netlify Identity not available');
             this.showError('Netlify Identity is not loaded. Please refresh the page.');
+            
+            // Try to initialize it
+            if (window.netlifyIdentity) {
+                window.netlifyIdentity.init({
+                    APIUrl: window.location.origin + "/.netlify/identity"
+                });
+                setTimeout(() => {
+                    if (typeof netlifyIdentity !== 'undefined') {
+                        netlifyIdentity.open('login');
+                    }
+                }, 500);
+            }
         }
     },
 
     setupIdentityListeners() {
         // Set up Netlify Identity event listeners
-        if (typeof netlifyIdentity === 'undefined') {
+        if (typeof window.netlifyIdentity === 'undefined') {
             // Wait for Identity to load
-            setTimeout(() => this.setupIdentityListeners(), 100);
+            console.log('[Auth] Waiting for Identity widget to load...');
+            setTimeout(() => this.setupIdentityListeners(), 200);
             return;
         }
 
+        console.log('[Auth] Setting up Identity listeners');
+
+        // Initialize Identity if not already done
+        if (window.netlifyIdentity && !window.netlifyIdentity._initialized) {
+            window.netlifyIdentity.init({
+                APIUrl: window.location.origin + "/.netlify/identity"
+            });
+        }
+
         // Listen for successful login
-        netlifyIdentity.on('login', (user) => {
+        window.netlifyIdentity.on('login', (user) => {
             console.log('[Identity] User logged in:', user.email);
             this.state.isAuthenticated = true;
             this.state.currentUser = user;
-            netlifyIdentity.close();
+            window.netlifyIdentity.close();
             this.showAdminInterface();
             this.showToast(`Welcome, ${user.email}`, 'success');
         });
 
         // Listen for logout
-        netlifyIdentity.on('logout', () => {
+        window.netlifyIdentity.on('logout', () => {
             console.log('[Identity] User logged out');
             this.state.isAuthenticated = false;
             this.state.currentUser = null;
@@ -140,7 +179,7 @@ const adminApp = {
         });
 
         // Listen for errors
-        netlifyIdentity.on('error', (err) => {
+        window.netlifyIdentity.on('error', (err) => {
             console.error('[Identity] Error:', err);
             this.showError('Authentication error. Please try again.');
         });
@@ -148,8 +187,8 @@ const adminApp = {
 
     logout() {
         // Logout via Netlify Identity
-        if (typeof netlifyIdentity !== 'undefined') {
-            netlifyIdentity.logout();
+        if (typeof window.netlifyIdentity !== 'undefined' && window.netlifyIdentity) {
+            window.netlifyIdentity.logout();
         } else {
             // Fallback if Identity not available
             this.state.isAuthenticated = false;
