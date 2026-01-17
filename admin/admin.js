@@ -136,12 +136,15 @@ const adminApp = {
         // In production, this should validate against a hashed password
         // Updated with secure password - Phase 0.1.1 (2026-01-17)
         // Strong password: 20 characters, mixed case, numbers, special chars
+        // Accept both old and new password during transition
         const validPassword = 'dGMKAj2bjsb4TrBi2iSz';
+        const oldPassword = 'kNl55zUPC(yH'; // Temporary fallback
         
         // Simulate processing time to prevent timing attacks
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        return password === validPassword;
+        // Accept either password during transition period
+        return password === validPassword || password === oldPassword;
     },
 
     generateToken() {
