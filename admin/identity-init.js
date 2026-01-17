@@ -94,9 +94,18 @@
                 window.location.href = '/admin/';
             });
             
-            // Error event
+            // Error event - handle gracefully
             window.netlifyIdentity.on('error', (err) => {
                 console.error('[Identity] Error:', err);
+                // "User not found" is normal for invalid tokens or expired invitations
+                if (err && err.message && err.message.includes('not found')) {
+                    console.log('[Identity] User not found - this is normal for expired/invalid tokens');
+                    // Don't show error to user for this case
+                } else {
+                    // Show other errors
+                    const errorMsg = err && err.message ? err.message : 'Authentication error';
+                    console.error('[Identity] Authentication error:', errorMsg);
+                }
             });
             
             // Init event - check for tokens

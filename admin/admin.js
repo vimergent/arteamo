@@ -692,108 +692,118 @@ if (typeof module !== 'undefined' && module.exports) {
             document.addEventListener('click', () => this.updateActivity());
             document.addEventListener('keydown', () => this.updateActivity());
 
-        // Login button (handled by openLogin() which opens Identity widget)
-        const loginButton = document.getElementById('loginButton');
-        if (loginButton) {
-            loginButton.addEventListener('click', () => {
-                this.openLogin();
-            });
-        }
-
-        // Project form
-        const projectForm = document.getElementById('projectForm');
-        if (projectForm) {
-            projectForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                this.saveProject(formData);
-            });
-        }
-
-        // Navigation tabs
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const section = e.target.dataset.section;
-                
-                // Update tabs
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Update sections
-                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-                document.getElementById(`${section}Section`).classList.add('active');
-            });
-        });
-
-        // Language tabs
-        document.querySelectorAll('.lang-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const lang = e.target.dataset.lang;
-                const container = e.target.closest('.lang-tabs').parentElement;
-                
-                // Update tabs
-                container.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Update content
-                container.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
-                container.querySelector(`.lang-content[data-lang="${lang}"]`).classList.add('active');
-            });
-        });
-
-        // Search and filters
-        const searchProjects = document.getElementById('searchProjects');
-        const categoryFilter = document.getElementById('categoryFilter');
-        if (searchProjects) {
-            searchProjects.addEventListener('input', () => this.renderProjects());
-        }
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', () => this.renderProjects());
-        }
-
-        // Image upload
-        const uploadArea = document.getElementById('imageUploadArea');
-        const imageInput = document.getElementById('imageInput');
-
-        uploadArea.addEventListener('click', () => imageInput.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragging');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragging');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragging');
-            // Handle file drop
-            const files = Array.from(e.dataTransfer.files);
-            this.handleImageUpload(files);
-        });
-
-        imageInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            this.handleImageUpload(files);
-        });
-
-        // Modal close on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('projectModal').classList.contains('active')) {
-                this.closeModal();
+            // Login button (handled by openLogin() which opens Identity widget)
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', () => {
+                    this.openLogin();
+                });
             }
-        });
 
-        // Click outside modal to close
-        const projectModal = document.getElementById('projectModal');
-        if (projectModal) {
-            projectModal.addEventListener('click', (e) => {
-            if (e.target.id === 'projectModal') {
-                this.closeModal();
+            // Project form
+            const projectForm = document.getElementById('projectForm');
+            if (projectForm) {
+                projectForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    this.saveProject(formData);
+                });
             }
-        });
+
+            // Navigation tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const section = e.target.dataset.section;
+                    
+                    // Update tabs
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Update sections
+                    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                    const sectionEl = document.getElementById(`${section}Section`);
+                    if (sectionEl) sectionEl.classList.add('active');
+                });
+            });
+
+            // Language tabs
+            document.querySelectorAll('.lang-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const lang = e.target.dataset.lang;
+                    const container = e.target.closest('.lang-tabs')?.parentElement;
+                    if (!container) return;
+                    
+                    // Update tabs
+                    container.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Update content
+                    container.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
+                    const contentEl = container.querySelector(`.lang-content[data-lang="${lang}"]`);
+                    if (contentEl) contentEl.classList.add('active');
+                });
+            });
+
+            // Search and filters
+            const searchProjects = document.getElementById('searchProjects');
+            const categoryFilter = document.getElementById('categoryFilter');
+            if (searchProjects) {
+                searchProjects.addEventListener('input', () => this.renderProjects());
+            }
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', () => this.renderProjects());
+            }
+
+            // Image upload
+            const uploadArea = document.getElementById('imageUploadArea');
+            const imageInput = document.getElementById('imageInput');
+            
+            if (uploadArea && imageInput) {
+                uploadArea.addEventListener('click', () => imageInput.click());
+                
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragging');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragging');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragging');
+                    // Handle file drop
+                    const files = Array.from(e.dataTransfer.files);
+                    this.handleImageUpload(files);
+                });
+
+                imageInput.addEventListener('change', (e) => {
+                    const files = Array.from(e.target.files);
+                    this.handleImageUpload(files);
+                });
+            }
+
+            // Modal close on escape
+            document.addEventListener('keydown', (e) => {
+                const projectModal = document.getElementById('projectModal');
+                if (e.key === 'Escape' && projectModal && projectModal.classList.contains('active')) {
+                    this.closeModal();
+                }
+            });
+
+            // Click outside modal to close
+            const projectModal = document.getElementById('projectModal');
+            if (projectModal) {
+                projectModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'projectModal') {
+                        this.closeModal();
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('[Admin] Error setting up event listeners:', error);
+        }
     },
 
     // Image handling
