@@ -194,10 +194,8 @@ const adminApp = {
             this.state.isAuthenticated = false;
             this.state.currentUser = null;
             this.showAuthScreen();
+            this.showToast('Logged out successfully', 'success');
         }
-    },
-        this.showAuthScreen();
-        this.showToast('Logged out successfully', 'success');
     },
 
     // Session Management

@@ -344,25 +344,43 @@
     <!-- Scripts -->
     <script src="../../project-config.js"></script>
     <script src="../../translations.js"></script>
+    <script src="admin.js"></script>
     
     <!-- Netlify Identity Initialization -->
     <script>
-      // Initialize Netlify Identity widget
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", (user) => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/admin/";
+      // Wait for DOM and scripts to load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Netlify Identity widget
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.on("init", (user) => {
+            if (!user) {
+              window.netlifyIdentity.on("login", () => {
+                document.location.href = "/admin/";
+              });
+            }
+          });
+          // Initialize the widget with the site URL
+          window.netlifyIdentity.init({
+            APIUrl: window.location.origin + "/.netlify/identity"
+          });
+        }
+        
+        // Make sure adminApp is available for button clicks
+        if (typeof adminApp !== 'undefined') {
+          // Replace onclick with event listener for better reliability
+          const loginButton = document.getElementById('loginButton');
+          if (loginButton) {
+            loginButton.addEventListener('click', function(e) {
+              e.preventDefault();
+              if (typeof adminApp !== 'undefined' && adminApp.openLogin) {
+                adminApp.openLogin();
+              } else {
+                console.error('adminApp.openLogin not available');
+              }
             });
           }
-        });
-        // Initialize the widget with the site URL
-        window.netlifyIdentity.init({
-          APIUrl: window.location.origin + "/.netlify/identity"
-        });
-      }
+        }
+      });
     </script>
-    
-    <script src="admin.js"></script>
 </body>
 </html>

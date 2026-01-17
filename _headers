@@ -8,7 +8,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   X-DNS-Prefetch-Control: on
-  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.netlify.com; frame-src https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://identity.netlify.com; img-src 'self' data: blob:; connect-src 'self' https://api.netlify.com https://identity.netlify.com; frame-src https://www.google.com https://identity.netlify.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self';
   
   # Performance headers
   Cache-Control: public, max-age=0, must-revalidate
