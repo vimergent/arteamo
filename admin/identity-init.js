@@ -126,14 +126,33 @@
                 
                 // Check for tokens in URL
                 const hash = window.location.hash;
-                if (hash && (
-                    hash.includes('recovery_token=') ||
-                    hash.includes('invite_token=') ||
-                    hash.includes('confirmation_token=') ||
-                    hash.includes('token=')
-                )) {
-                    console.log('[Identity] Token detected in URL, widget should handle it');
-                    // Widget will automatically show appropriate form
+                if (hash) {
+                    if (hash.includes('confirmation_token=')) {
+                        console.log('[Identity] Confirmation token detected, widget will process it');
+                        // Widget will automatically show confirmation form
+                    } else if (
+                        hash.includes('recovery_token=') ||
+                        hash.includes('invite_token=') ||
+                        hash.includes('token=')
+                    ) {
+                        console.log('[Identity] Token detected in URL, widget should handle it');
+                        // Widget will automatically show appropriate form
+                    }
+                }
+            });
+            
+            // Handle successful email confirmation
+            window.netlifyIdentity.on('confirm', (user) => {
+                console.log('[Identity] Email confirmed, user:', user.email);
+                // User is now logged in after confirmation
+                if (typeof adminApp !== 'undefined') {
+                    adminApp.state.isAuthenticated = true;
+                    adminApp.state.currentUser = user;
+                    adminApp.showAdminInterface();
+                    adminApp.showToast('Email confirmed! Welcome!', 'success');
+                } else {
+                    // Reload page to show admin interface
+                    window.location.reload();
                 }
             });
         },
