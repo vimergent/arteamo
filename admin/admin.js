@@ -70,31 +70,35 @@ const adminApp = {
 
     // Authentication - Netlify Identity
     async checkAuth() {
-        // Wait for Netlify Identity to initialize
-        if (typeof window.netlifyIdentity === 'undefined') {
-            // Identity widget not loaded yet, wait a bit
-            setTimeout(() => this.checkAuth(), 200);
+        // Use IdentityManager if available
+        if (window.IdentityManager) {
+            const user = window.IdentityManager.getCurrentUser();
+            if (user) {
+                this.state.isAuthenticated = true;
+                this.state.currentUser = user;
+                this.showAdminInterface();
+                this.showToast(`Welcome back, ${user.email}`, 'success');
+            } else {
+                this.showAuthScreen();
+            }
             return;
         }
-
-        // Initialize Identity if not already done
-        if (window.netlifyIdentity && !window.netlifyIdentity._initialized) {
-            window.netlifyIdentity.init({
-                APIUrl: window.location.origin + "/.netlify/identity"
-            });
+        
+        // Fallback: Wait for Netlify Identity to initialize
+        if (typeof window.netlifyIdentity === 'undefined') {
+            setTimeout(() => this.checkAuth(), 200);
+            return;
         }
 
         // Check if user is authenticated via Netlify Identity
         const user = window.netlifyIdentity.currentUser();
         
         if (user) {
-            // User is authenticated
             this.state.isAuthenticated = true;
             this.state.currentUser = user;
             this.showAdminInterface();
             this.showToast(`Welcome back, ${user.email}`, 'success');
         } else {
-            // User not authenticated, show login screen
             this.showAuthScreen();
         }
     },
@@ -114,13 +118,18 @@ const adminApp = {
 
     openLogin() {
         console.log('[Auth] openLogin called');
-        console.log('[Auth] netlifyIdentity available:', typeof netlifyIdentity !== 'undefined');
         
-        // Open Netlify Identity login modal
-        if (typeof netlifyIdentity !== 'undefined' && netlifyIdentity) {
+        // Use IdentityManager if available (preferred)
+        if (window.IdentityManager) {
+            window.IdentityManager.openLogin();
+            return;
+        }
+        
+        // Fallback to direct Identity widget access
+        if (typeof window.netlifyIdentity !== 'undefined' && window.netlifyIdentity) {
             try {
                 console.log('[Auth] Opening Identity modal...');
-                netlifyIdentity.open('login');
+                window.netlifyIdentity.open('login');
             } catch (error) {
                 console.error('[Auth] Error opening Identity:', error);
                 this.showError('Error opening login. Please refresh the page.');
@@ -128,38 +137,25 @@ const adminApp = {
         } else {
             console.error('[Auth] Netlify Identity not available');
             this.showError('Netlify Identity is not loaded. Please refresh the page.');
-            
-            // Try to initialize it
-            if (window.netlifyIdentity) {
-                window.netlifyIdentity.init({
-                    APIUrl: window.location.origin + "/.netlify/identity"
-                });
-                setTimeout(() => {
-                    if (typeof netlifyIdentity !== 'undefined') {
-                        netlifyIdentity.open('login');
-                    }
-                }, 500);
-            }
         }
     },
 
     setupIdentityListeners() {
-        // Set up Netlify Identity event listeners
+        // IdentityManager handles all event listeners
+        // We just need to wait for it and check auth status
+        if (window.IdentityManager) {
+            // IdentityManager is handling everything
+            console.log('[Auth] IdentityManager is handling Identity setup');
+            return;
+        }
+        
+        // Fallback: Set up listeners manually if IdentityManager not available
         if (typeof window.netlifyIdentity === 'undefined') {
-            // Wait for Identity to load
-            console.log('[Auth] Waiting for Identity widget to load...');
             setTimeout(() => this.setupIdentityListeners(), 200);
             return;
         }
 
-        console.log('[Auth] Setting up Identity listeners');
-
-        // Initialize Identity if not already done
-        if (window.netlifyIdentity && !window.netlifyIdentity._initialized) {
-            window.netlifyIdentity.init({
-                APIUrl: window.location.origin + "/.netlify/identity"
-            });
-        }
+        console.log('[Auth] Setting up Identity listeners (fallback mode)');
 
         // Listen for successful login
         window.netlifyIdentity.on('login', (user) => {
@@ -188,7 +184,13 @@ const adminApp = {
     },
 
     logout() {
-        // Logout via Netlify Identity
+        // Use IdentityManager if available
+        if (window.IdentityManager) {
+            window.IdentityManager.logout();
+            return;
+        }
+        
+        // Fallback: Logout via Netlify Identity
         if (typeof window.netlifyIdentity !== 'undefined' && window.netlifyIdentity) {
             window.netlifyIdentity.logout();
         } else {
