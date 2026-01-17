@@ -240,21 +240,26 @@
         }
     </script>
     
-    <!-- Netlify Identity - Handle recovery tokens and invitation tokens -->
+    <!-- Netlify Identity - Handle ALL Identity tokens (recovery, invitation, confirmation) -->
     <script>
       // IMMEDIATE redirect for Identity tokens (runs synchronously, before page loads)
+      // This catches: recovery_token, invite_token, confirmation_token, and generic token
       (function() {
         const hash = window.location.hash;
-        if (hash && (
-          hash.includes('recovery_token=') ||
-          hash.includes('invite_token=') ||
-          hash.includes('confirmation_token=') ||
-          hash.includes('token=')
-        )) {
-          // Immediately redirect to admin page with token (synchronous, no delay)
-          window.location.replace('/admin/' + hash);
-          // Prevent any further script execution
-          return;
+        if (hash) {
+          // Check for any Identity token pattern
+          const hasToken = hash.includes('recovery_token=') ||
+                          hash.includes('invite_token=') ||
+                          hash.includes('confirmation_token=') ||
+                          hash.includes('token=');
+          
+          if (hasToken) {
+            // Immediately redirect to admin page with token (synchronous, no delay)
+            console.log('[Homepage] Identity token detected, redirecting to /admin');
+            window.location.replace('/admin/' + hash);
+            // Prevent any further script execution
+            return;
+          }
         }
       })();
     </script>
