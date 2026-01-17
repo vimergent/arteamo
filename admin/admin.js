@@ -100,8 +100,10 @@ const adminApp = {
     },
 
     showAuthScreen() {
-        document.getElementById('authScreen').style.display = 'flex';
-        document.getElementById('adminInterface').style.display = 'none';
+        const authScreen = document.getElementById('authScreen');
+        const adminInterface = document.getElementById('adminInterface');
+        if (authScreen) authScreen.style.display = 'flex';
+        if (adminInterface) adminInterface.style.display = 'none';
     },
 
     showAdminInterface() {
@@ -575,12 +577,17 @@ if (typeof module !== 'undefined' && module.exports) {
 
     showError(message) {
         const errorEl = document.getElementById('authError');
-        errorEl.textContent = message;
-        errorEl.classList.add('active');
-        
-        setTimeout(() => {
-            errorEl.classList.remove('active');
-        }, 5000);
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.classList.add('active');
+            
+            setTimeout(() => {
+                errorEl.classList.remove('active');
+            }, 5000);
+        } else {
+            // Fallback: show toast if error element doesn't exist
+            this.showToast(message, 'error');
+        }
     },
 
     updateSaveStatus(status) {
@@ -691,11 +698,14 @@ if (typeof module !== 'undefined' && module.exports) {
         }
 
         // Project form
-        document.getElementById('projectForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            this.saveProject(formData);
-        });
+        const projectForm = document.getElementById('projectForm');
+        if (projectForm) {
+            projectForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                this.saveProject(formData);
+            });
+        }
 
         // Navigation tabs
         document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -729,8 +739,14 @@ if (typeof module !== 'undefined' && module.exports) {
         });
 
         // Search and filters
-        document.getElementById('searchProjects').addEventListener('input', () => this.renderProjects());
-        document.getElementById('categoryFilter').addEventListener('change', () => this.renderProjects());
+        const searchProjects = document.getElementById('searchProjects');
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (searchProjects) {
+            searchProjects.addEventListener('input', () => this.renderProjects());
+        }
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', () => this.renderProjects());
+        }
 
         // Image upload
         const uploadArea = document.getElementById('imageUploadArea');
