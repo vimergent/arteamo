@@ -137,6 +137,9 @@ const adminApp = {
         // Updated with secure password - Phase 0.1.1 (2026-01-17)
         // Strong password: 20 characters, mixed case, numbers, special chars
         // Accept both old and new password during transition
+        
+        // Trim whitespace to prevent input issues
+        const trimmedPassword = (password || '').trim();
         const validPassword = 'dGMKAj2bjsb4TrBi2iSz';
         const oldPassword = 'kNl55zUPC(yH'; // Temporary fallback
         
@@ -144,7 +147,14 @@ const adminApp = {
         await new Promise(resolve => setTimeout(resolve, 300));
         
         // Accept either password during transition period
-        return password === validPassword || password === oldPassword;
+        const isValid = trimmedPassword === validPassword || trimmedPassword === oldPassword;
+        
+        // Debug logging (remove in production)
+        if (typeof console !== 'undefined' && console.log) {
+            console.log('[Auth Debug] Password length:', trimmedPassword.length, 'Valid:', isValid);
+        }
+        
+        return isValid;
     },
 
     generateToken() {
