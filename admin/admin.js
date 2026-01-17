@@ -784,7 +784,9 @@ if (typeof module !== 'undefined' && module.exports) {
         });
 
         // Click outside modal to close
-        document.getElementById('projectModal').addEventListener('click', (e) => {
+        const projectModal = document.getElementById('projectModal');
+        if (projectModal) {
+            projectModal.addEventListener('click', (e) => {
             if (e.target.id === 'projectModal') {
                 this.closeModal();
             }
