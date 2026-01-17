@@ -350,16 +350,23 @@
     <script>
       // Wait for DOM and scripts to load
       document.addEventListener('DOMContentLoaded', function() {
-        // Check for recovery token in URL (password reset)
+        // Check for Identity tokens in URL (password reset, invitation, etc.)
         const hash = window.location.hash;
-        if (hash && hash.includes('recovery_token=')) {
-          // Identity widget will handle the recovery token automatically
+        if (hash && (
+          hash.includes('recovery_token=') ||
+          hash.includes('invite_token=') ||
+          hash.includes('confirmation_token=') ||
+          hash.includes('token=')
+        )) {
+          // Identity widget will handle tokens automatically
           // Just make sure Identity is initialized
           if (window.netlifyIdentity) {
             window.netlifyIdentity.init({
               APIUrl: window.location.origin + "/.netlify/identity"
             });
-            // The widget will automatically show password reset form
+            // The widget will automatically show appropriate form
+            // (password reset, invitation acceptance, etc.)
+            console.log('[Identity] Token detected in URL, widget should handle it');
             return;
           }
         }
