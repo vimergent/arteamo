@@ -182,10 +182,22 @@ const adminApp = {
     // Project Management
     loadProjects() {
         try {
-            // First try to load from localStorage
+            // First try to load from localStorage (new format with timestamp)
             const savedProjects = localStorage.getItem('adminProjects');
             if (savedProjects) {
-                this.state.projects = JSON.parse(savedProjects);
+                const parsed = JSON.parse(savedProjects);
+                // Handle both new format (with lastSaved) and old format (array)
+                if (parsed.projects && Array.isArray(parsed.projects)) {
+                    this.state.projects = parsed.projects;
+                    // Log last save time for verification
+                    if (parsed.lastSaved) {
+                        const saveDate = new Date(parsed.lastSaved);
+                        this.updateSaveStatus(`Last saved: ${saveDate.toLocaleString()}`);
+                    }
+                } else if (Array.isArray(parsed)) {
+                    // Old format - backward compatibility
+                    this.state.projects = parsed;
+                }
             } else if (typeof projectConfig !== 'undefined') {
                 // Import from existing project-config.js
                 this.importFromProjectConfig();
