@@ -237,5 +237,27 @@
             }
         }
     </script>
+    
+    <!-- Netlify Identity - Handle recovery tokens (password reset) -->
+    <script>
+      // Check for recovery token in URL hash (password reset)
+      if (window.location.hash && window.location.hash.includes('recovery_token=')) {
+        // Redirect to admin page with recovery token
+        window.location.href = '/admin/' + window.location.hash;
+      }
+      
+      // Initialize Identity widget if present (for password reset)
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", (user) => {
+          // If recovery token is present, redirect to admin
+          if (window.location.hash && window.location.hash.includes('recovery_token=')) {
+            window.location.href = '/admin/' + window.location.hash;
+          }
+        });
+        window.netlifyIdentity.init({
+          APIUrl: window.location.origin + "/.netlify/identity"
+        });
+      }
+    </script>
 </body>
 </html>
