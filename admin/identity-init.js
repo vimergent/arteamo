@@ -114,13 +114,15 @@
             
             // Error event - handle gracefully
             window.netlifyIdentity.on('error', (err) => {
+                console.log('[Identity] Error event:', err);
+                
                 // "User not found" is normal for invalid/expired tokens - ignore it
                 if (err && err.message && (
                     err.message.includes('not found') ||
                     err.message.includes('User not found') ||
                     err.message.includes('Invalid token')
                 )) {
-                    console.log('[Identity] Token invalid/expired - this is normal, user can request new invitation');
+                    console.log('[Identity] Token invalid/expired - this is normal');
                     // Clear any invalid tokens from URL
                     if (window.location.hash && (
                         window.location.hash.includes('token=') ||
@@ -132,6 +134,22 @@
                         window.history.replaceState({}, '', url);
                     }
                     return; // Don't log as error
+                }
+                
+                // "Invited users must specify a password" - this means user needs to accept invitation
+                if (err && err.message && err.message.includes('Invited users must specify a password')) {
+                    console.log('[Identity] User was invited - they need to accept invitation and set password');
+                    console.log('[Identity] Check URL for invite_token - if present, widget should show password form');
+                    // Check if we have invite_token in URL
+                    const hash = window.location.hash;
+                    if (hash && hash.includes('invite_token=')) {
+                        console.log('[Identity] invite_token found - widget should show password setup form');
+                        // Widget will handle this automatically
+                    } else {
+                        console.log('[Identity] No invite_token in URL - user needs invitation link');
+                    }
+                    // Don't show error to user - widget will handle it
+                    return;
                 }
                 
                 // Log other errors
