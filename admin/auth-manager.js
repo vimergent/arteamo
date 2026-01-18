@@ -103,6 +103,11 @@
     // Set callback for auth state changes
     setOnAuthChange(callback) {
       this.onAuthChange = callback;
+      // If already authenticated, notify immediately
+      if (this.user) {
+        console.log('[AuthManager] Already authenticated, notifying callback immediately');
+        callback(true, this.user);
+      }
     },
 
     // Notify about auth state change
