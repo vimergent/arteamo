@@ -969,18 +969,19 @@ function initializeAdmin() {
         return;
     }
     
-    // Check if Identity widget is loaded
-    if (typeof window.netlifyIdentity === 'undefined') {
-        // Wait a bit for Identity widget to load
+    // Wait for AuthManager to be available (Google OAuth)
+    if (typeof window.AuthManager === 'undefined') {
         setTimeout(initializeAdmin, 100);
         return;
     }
+    
+    console.log('[AdminApp] Starting initialization...');
     
     // Initialize admin app
     if (typeof adminApp !== 'undefined') {
         adminApp.init();
     } else {
-        console.error('adminApp not defined');
+        console.error('[AdminApp] adminApp not defined');
     }
 }
 
