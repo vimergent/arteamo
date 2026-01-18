@@ -236,11 +236,13 @@ exports.handler = async (event, context) => {
       statusCode: 302,
       headers: {
         'Location': `${SITE_URL}/admin/`,
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      },
+      multiValueHeaders: {
         'Set-Cookie': [
           `session=${sessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${cookieMaxAge}`,
           'oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0'
-        ].join(', '),
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        ]
       },
       body: ''
     };
