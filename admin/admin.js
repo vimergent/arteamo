@@ -57,8 +57,8 @@ const adminApp = {
 
     // Initialize
     init() {
-        // Set up Netlify Identity listeners first
-        this.setupIdentityListeners();
+        // Set up Google OAuth auth change listener
+        this.setupAuthListener();
         // Then check authentication
         this.checkAuth();
         this.setupEventListeners();
@@ -68,39 +68,40 @@ const adminApp = {
         this.loadContactEmail();
     },
 
-    // Authentication - Netlify Identity
+    // Authentication - Google OAuth
     async checkAuth() {
-        // Use IdentityManager if available
-        if (window.IdentityManager) {
-            const user = window.IdentityManager.getCurrentUser();
+        // Use AuthManager for Google OAuth
+        if (window.AuthManager) {
+            // AuthManager.init() is called automatically
+            // Set up callback for auth state changes
+            window.AuthManager.setOnAuthChange((authenticated, user) => {
+                if (authenticated && user) {
+                    this.state.isAuthenticated = true;
+                    this.state.currentUser = user;
+                    this.showAdminInterface();
+                    this.showToast(`Welcome, ${user.name || user.email}`, 'success');
+                } else {
+                    this.state.isAuthenticated = false;
+                    this.state.currentUser = null;
+                    this.showAuthScreen();
+                }
+            });
+            
+            // Check if already authenticated
+            const user = window.AuthManager.getCurrentUser();
             if (user) {
                 this.state.isAuthenticated = true;
                 this.state.currentUser = user;
                 this.showAdminInterface();
-                this.showToast(`Welcome back, ${user.email}`, 'success');
+                this.showToast(`Welcome back, ${user.name || user.email}`, 'success');
             } else {
                 this.showAuthScreen();
             }
             return;
         }
         
-        // Fallback: Wait for Netlify Identity to initialize
-        if (typeof window.netlifyIdentity === 'undefined') {
-            setTimeout(() => this.checkAuth(), 200);
-            return;
-        }
-
-        // Check if user is authenticated via Netlify Identity
-        const user = window.netlifyIdentity.currentUser();
-        
-        if (user) {
-            this.state.isAuthenticated = true;
-            this.state.currentUser = user;
-            this.showAdminInterface();
-            this.showToast(`Welcome back, ${user.email}`, 'success');
-        } else {
-            this.showAuthScreen();
-        }
+        // Fallback: Wait for AuthManager to initialize
+        setTimeout(() => this.checkAuth(), 200);
     },
 
     showAuthScreen() {
@@ -117,89 +118,50 @@ const adminApp = {
     },
 
     openLogin() {
-        console.log('[Auth] openLogin called');
+        console.log('[Auth] openLogin called - initiating Google OAuth');
         
-        // Use IdentityManager if available (preferred)
-        if (window.IdentityManager) {
-            window.IdentityManager.openLogin();
+        // Use AuthManager for Google OAuth
+        if (window.AuthManager) {
+            window.AuthManager.login();
             return;
         }
         
-        // Fallback to direct Identity widget access
-        if (typeof window.netlifyIdentity !== 'undefined' && window.netlifyIdentity) {
-            try {
-                console.log('[Auth] Opening Identity modal...');
-                window.netlifyIdentity.open('login');
-            } catch (error) {
-                console.error('[Auth] Error opening Identity:', error);
-                this.showError('Error opening login. Please refresh the page.');
-            }
-        } else {
-            console.error('[Auth] Netlify Identity not available');
-            this.showError('Netlify Identity is not loaded. Please refresh the page.');
-        }
+        // Fallback: Direct redirect to OAuth function
+        window.location.href = '/.netlify/functions/auth-login';
     },
 
-    setupIdentityListeners() {
-        // IdentityManager handles all event listeners
-        // We just need to wait for it and check auth status
-        if (window.IdentityManager) {
-            // IdentityManager is handling everything
-            console.log('[Auth] IdentityManager is handling Identity setup');
-            return;
+    setupAuthListener() {
+        // Set up AuthManager callback for auth state changes
+        if (window.AuthManager) {
+            console.log('[Auth] Setting up AuthManager listener');
+            window.AuthManager.setOnAuthChange((authenticated, user) => {
+                if (authenticated && user) {
+                    this.state.isAuthenticated = true;
+                    this.state.currentUser = user;
+                    this.showAdminInterface();
+                } else {
+                    this.state.isAuthenticated = false;
+                    this.state.currentUser = null;
+                    this.showAuthScreen();
+                }
+            });
+        } else {
+            // Wait for AuthManager to load
+            setTimeout(() => this.setupAuthListener(), 200);
         }
-        
-        // Fallback: Set up listeners manually if IdentityManager not available
-        if (typeof window.netlifyIdentity === 'undefined') {
-            setTimeout(() => this.setupIdentityListeners(), 200);
-            return;
-        }
-
-        console.log('[Auth] Setting up Identity listeners (fallback mode)');
-
-        // Listen for successful login
-        window.netlifyIdentity.on('login', (user) => {
-            console.log('[Identity] User logged in:', user.email);
-            this.state.isAuthenticated = true;
-            this.state.currentUser = user;
-            window.netlifyIdentity.close();
-            this.showAdminInterface();
-            this.showToast(`Welcome, ${user.email}`, 'success');
-        });
-
-        // Listen for logout
-        window.netlifyIdentity.on('logout', () => {
-            console.log('[Identity] User logged out');
-            this.state.isAuthenticated = false;
-            this.state.currentUser = null;
-            this.showAuthScreen();
-            this.showToast('You have been logged out', 'info');
-        });
-
-        // Listen for errors
-        window.netlifyIdentity.on('error', (err) => {
-            console.error('[Identity] Error:', err);
-            this.showError('Authentication error. Please try again.');
-        });
     },
 
     logout() {
-        // Use IdentityManager if available
-        if (window.IdentityManager) {
-            window.IdentityManager.logout();
+        console.log('[Auth] Logging out via Google OAuth');
+        
+        // Use AuthManager for Google OAuth logout
+        if (window.AuthManager) {
+            window.AuthManager.logout();
             return;
         }
         
-        // Fallback: Logout via Netlify Identity
-        if (typeof window.netlifyIdentity !== 'undefined' && window.netlifyIdentity) {
-            window.netlifyIdentity.logout();
-        } else {
-            // Fallback if Identity not available
-            this.state.isAuthenticated = false;
-            this.state.currentUser = null;
-            this.showAuthScreen();
-            this.showToast('Logged out successfully', 'success');
-        }
+        // Fallback: Direct redirect to logout function
+        window.location.href = '/.netlify/functions/auth-logout';
     },
 
     // Session Management

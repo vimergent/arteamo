@@ -32,10 +32,6 @@
     <noscript><link rel="stylesheet" href="/mobile-optimizations.min.css"></noscript>
     <!-- Removed performance-optimizer.js and enhanced-lazy-loading.js - functionality integrated in other scripts -->
     <script src="/remove-blur-fix.js" defer></script>
-    <!-- Netlify Identity Widget - needed for password reset links -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <!-- Identity Manager for homepage -->
-    <script src="/admin/identity-init.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -240,30 +236,5 @@
         }
     </script>
     
-    <!-- Netlify Identity - Handle ALL Identity tokens (recovery, invitation, confirmation) -->
-    <script>
-      // IMMEDIATE redirect for Identity tokens (runs synchronously, before page loads)
-      // This catches: recovery_token, invite_token, confirmation_token, and generic token
-      (function() {
-        const hash = window.location.hash;
-        if (hash) {
-          // Check for any Identity token pattern
-          const hasToken = hash.includes('recovery_token=') ||
-                          hash.includes('invite_token=') ||
-                          hash.includes('confirmation_token=') ||
-                          hash.includes('token=');
-          
-          if (hasToken) {
-            // Immediately redirect to admin page with token (preserve hash)
-            // Use full URL to ensure hash is preserved
-            const adminUrl = window.location.origin + '/admin' + hash;
-            console.log('[Homepage] Identity token detected, redirecting to:', adminUrl);
-            window.location.replace(adminUrl);
-            // Prevent any further script execution
-            return;
-          }
-        }
-      })();
-    </script>
 </body>
 </html>

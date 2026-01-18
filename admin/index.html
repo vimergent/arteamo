@@ -6,10 +6,8 @@
     <title>Studio Arteamo Admin - Website Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-styles.css">
-    <!-- Netlify Identity Widget - Load first -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <!-- Identity Manager - Handles all Identity initialization -->
-    <script src="identity-init.js"></script>
+    <!-- Google OAuth Authentication Manager -->
+    <script src="auth-manager.js"></script>
 </head>
 <body>
     <!-- Authentication Screen -->
@@ -20,7 +18,13 @@
                 <p class="auth-subtitle">Admin Access</p>
                 <div class="auth-form">
                     <button type="button" class="btn btn-primary" id="loginButton" onclick="handleLoginClick(event)">
-                        <span id="authButtonText">Log in with Netlify Identity</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        <span id="authButtonText">Sign in with Google</span>
                     </button>
                     <div id="authError" class="error-message"></div>
                     <div id="authStatus" class="auth-status"></div>
@@ -348,74 +352,25 @@
     <script src="../../translations.js"></script>
     <script src="admin.js"></script>
     
-    <!-- Global login button handler (works immediately, no DOMContentLoaded needed) -->
+    <!-- Google OAuth login handler -->
     <script>
-      // Global function that can be called from onclick attribute
+      // Simple login handler for Google OAuth
       function handleLoginClick(event) {
         if (event) {
           event.preventDefault();
           event.stopPropagation();
         }
         
-        console.log('[Admin] Login button clicked (onclick handler)');
+        console.log('[Admin] Login button clicked - initiating Google OAuth');
         
-        // Try IdentityManager first
-        if (window.IdentityManager && typeof window.IdentityManager.openLogin === 'function') {
-          console.log('[Admin] Using IdentityManager to open login');
-          window.IdentityManager.openLogin();
-          return;
+        // Use AuthManager for Google OAuth
+        if (window.AuthManager && typeof window.AuthManager.login === 'function') {
+          window.AuthManager.login();
+        } else {
+          // Direct redirect if AuthManager not ready
+          window.location.href = '/.netlify/functions/auth-login';
         }
-        
-        // Try adminApp
-        if (typeof adminApp !== 'undefined' && typeof adminApp.openLogin === 'function') {
-          console.log('[Admin] Using adminApp to open login');
-          adminApp.openLogin();
-          return;
-        }
-        
-        // Try direct netlifyIdentity
-        if (window.netlifyIdentity && typeof window.netlifyIdentity.open === 'function') {
-          console.log('[Admin] Using direct netlifyIdentity to open login');
-          try {
-            window.netlifyIdentity.open('login');
-            console.log('[Admin] Login modal opened successfully');
-            return;
-          } catch (error) {
-            console.error('[Admin] Error opening login:', error);
-          }
-        }
-        
-        // Fallback: wait a bit and try again (in case scripts are still loading)
-        console.log('[Admin] Identity not ready, waiting 500ms...');
-        setTimeout(function() {
-          if (window.netlifyIdentity && typeof window.netlifyIdentity.open === 'function') {
-            try {
-              window.netlifyIdentity.open('login');
-              console.log('[Admin] Login modal opened after delay');
-            } catch (error) {
-              console.error('[Admin] Error opening login after delay:', error);
-              alert('Error opening login. Please refresh the page and try again.');
-            }
-          } else {
-            console.error('[Admin] Cannot open login - Identity not available');
-            alert('Netlify Identity is not loaded. Please refresh the page.');
-          }
-        }, 500);
       }
-      
-      // Also set up event listener as backup (in case onclick doesn't work)
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('[Admin] DOM loaded, setting up backup login button handler');
-        const loginButton = document.getElementById('loginButton');
-        if (loginButton) {
-          // Remove any existing listeners and add fresh one
-          const newButton = loginButton.cloneNode(true);
-          loginButton.parentNode.replaceChild(newButton, loginButton);
-          
-          newButton.addEventListener('click', handleLoginClick);
-          console.log('[Admin] Backup event listener added');
-        }
-      });
     </script>
 </body>
 </html>
