@@ -239,7 +239,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Project Folder Name*</label>
-                            <input type="text" class="form-input" id="projectFolder" required>
+                            <input type="text" class="form-input" id="projectFolder" name="folder" required>
                             <small>This should match the actual folder name containing images</small>
                         </div>
                     </div>
@@ -247,7 +247,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Category*</label>
-                            <select class="form-select" id="projectCategory" required>
+                            <select class="form-select" id="projectCategory" name="category" required>
                                 <option value="">Select Category</option>
                                 <option value="residential">Residential</option>
                                 <option value="commercial">Commercial</option>
@@ -258,11 +258,11 @@
                         </div>
                         <div class="form-group">
                             <label>Year*</label>
-                            <input type="number" class="form-input" id="projectYear" min="2000" max="2099" required>
+                            <input type="number" class="form-input" id="projectYear" name="year" min="2000" max="2099" required>
                         </div>
                         <div class="form-group">
                             <label>Area</label>
-                            <input type="text" class="form-input" id="projectArea" placeholder="e.g., 120 m²">
+                            <input type="text" class="form-input" id="projectArea" name="area" placeholder="e.g., 120 m²">
                         </div>
                     </div>
 
@@ -278,44 +278,44 @@
                     <div class="lang-content active" data-lang="en">
                         <div class="form-group">
                             <label>Project Name (English)*</label>
-                            <input type="text" class="form-input" id="name_en" required>
+                            <input type="text" class="form-input" id="name_en" name="name_en" required>
                         </div>
                         <div class="form-group">
                             <label>Description (English)</label>
-                            <textarea class="form-textarea" id="description_en" rows="3"></textarea>
+                            <textarea class="form-textarea" id="description_en" name="description_en" rows="3"></textarea>
                         </div>
                     </div>
 
                     <div class="lang-content" data-lang="bg">
                         <div class="form-group">
                             <label>Project Name (Bulgarian)</label>
-                            <input type="text" class="form-input" id="name_bg">
+                            <input type="text" class="form-input" id="name_bg" name="name_bg">
                         </div>
                         <div class="form-group">
                             <label>Description (Bulgarian)</label>
-                            <textarea class="form-textarea" id="description_bg" rows="3"></textarea>
+                            <textarea class="form-textarea" id="description_bg" name="description_bg" rows="3"></textarea>
                         </div>
                     </div>
 
                     <div class="lang-content" data-lang="ru">
                         <div class="form-group">
                             <label>Project Name (Russian)</label>
-                            <input type="text" class="form-input" id="name_ru">
+                            <input type="text" class="form-input" id="name_ru" name="name_ru">
                         </div>
                         <div class="form-group">
                             <label>Description (Russian)</label>
-                            <textarea class="form-textarea" id="description_ru" rows="3"></textarea>
+                            <textarea class="form-textarea" id="description_ru" name="description_ru" rows="3"></textarea>
                         </div>
                     </div>
 
                     <div class="lang-content" data-lang="es">
                         <div class="form-group">
                             <label>Project Name (Spanish)</label>
-                            <input type="text" class="form-input" id="name_es">
+                            <input type="text" class="form-input" id="name_es" name="name_es">
                         </div>
                         <div class="form-group">
                             <label>Description (Spanish)</label>
-                            <textarea class="form-textarea" id="description_es" rows="3"></textarea>
+                            <textarea class="form-textarea" id="description_es" name="description_es" rows="3"></textarea>
                         </div>
                     </div>
 
@@ -350,7 +350,7 @@
     <!-- Scripts -->
     <script src="../project-config.js?v=2"></script>
     <script src="../translations.js?v=2"></script>
-    <script src="admin.js?v=4"></script>
+    <script src="admin.js?v=5"></script>
     
     <!-- Google OAuth login handler -->
     <script>
