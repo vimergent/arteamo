@@ -70,41 +70,49 @@ const adminApp = {
 
     // Authentication - Google OAuth
     async checkAuth() {
+        console.log('[AdminApp] checkAuth called');
+        
         // Use AuthManager for Google OAuth
         if (window.AuthManager) {
-            // AuthManager.init() is called automatically
+            console.log('[AdminApp] AuthManager found, setting up callback');
+            
             // Set up callback for auth state changes
             window.AuthManager.setOnAuthChange((authenticated, user) => {
+                console.log('[AdminApp] Auth callback fired:', authenticated, user?.email);
                 if (authenticated && user) {
                     this.state.isAuthenticated = true;
                     this.state.currentUser = user;
+                    console.log('[AdminApp] Showing admin interface');
                     this.showAdminInterface();
                     this.showToast(`Welcome, ${user.name || user.email}`, 'success');
                 } else {
                     this.state.isAuthenticated = false;
                     this.state.currentUser = null;
+                    console.log('[AdminApp] Showing auth screen');
                     this.showAuthScreen();
                 }
             });
             
-            // Check if already authenticated
+            // Check if already authenticated (fallback)
             const user = window.AuthManager.getCurrentUser();
+            console.log('[AdminApp] getCurrentUser:', user?.email || 'null');
             if (user) {
                 this.state.isAuthenticated = true;
                 this.state.currentUser = user;
+                console.log('[AdminApp] Already authenticated, showing admin interface');
                 this.showAdminInterface();
                 this.showToast(`Welcome back, ${user.name || user.email}`, 'success');
-            } else {
-                this.showAuthScreen();
             }
             return;
         }
         
+        console.log('[AdminApp] AuthManager not ready, waiting...');
         // Fallback: Wait for AuthManager to initialize
         setTimeout(() => this.checkAuth(), 200);
     },
 
     showAuthScreen() {
+        console.log('[AdminApp] showAuthScreen called');
         const authScreen = document.getElementById('authScreen');
         const adminInterface = document.getElementById('adminInterface');
         if (authScreen) authScreen.style.display = 'flex';
@@ -112,8 +120,16 @@ const adminApp = {
     },
 
     showAdminInterface() {
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('adminInterface').style.display = 'block';
+        console.log('[AdminApp] showAdminInterface called');
+        const authScreen = document.getElementById('authScreen');
+        const adminInterface = document.getElementById('adminInterface');
+        if (authScreen) authScreen.style.display = 'none';
+        if (adminInterface) {
+            adminInterface.style.display = 'block';
+            console.log('[AdminApp] Admin interface displayed');
+        } else {
+            console.error('[AdminApp] adminInterface element not found!');
+        }
         this.renderProjects();
     },
 
