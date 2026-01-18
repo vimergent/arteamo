@@ -191,6 +191,20 @@
                     window.location.reload();
                 }
             });
+            
+            // Also handle confirmation via login event (some flows trigger login after confirm)
+            // This ensures we catch confirmation even if 'confirm' event doesn't fire
+            window.netlifyIdentity.on('login', (user) => {
+                // Check if this login happened right after confirmation
+                const hash = window.location.hash;
+                if (hash && hash.includes('confirmation_token=')) {
+                    console.log('[Identity] Login after confirmation detected');
+                    // Clear the token from URL
+                    const url = new URL(window.location.href);
+                    url.hash = '';
+                    window.history.replaceState({}, '', url);
+                }
+            });
         },
         
         // Open login modal
