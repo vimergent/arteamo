@@ -152,6 +152,21 @@
                     return;
                 }
                 
+                // "Email not confirmed" - user needs to confirm email before login
+                if (err && err.message && (
+                    err.message.includes('Email not confirmed') ||
+                    err.message.includes('invalid_grant') ||
+                    err.message.includes('email_not_confirmed')
+                )) {
+                    console.log('[Identity] Email not confirmed - user needs to confirm email first');
+                    console.log('[Identity] Suggest: Use "Forgot password?" to get confirmation link');
+                    // Show helpful message to user
+                    if (typeof adminApp !== 'undefined' && adminApp.showError) {
+                        adminApp.showError('Email not confirmed. Please click "Forgot password?" to get a confirmation link, or check your email for a confirmation message.');
+                    }
+                    return; // Don't log as critical error
+                }
+                
                 // Log other errors
                 console.error('[Identity] Error:', err);
             });
