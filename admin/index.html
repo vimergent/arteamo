@@ -348,41 +348,72 @@
     <script src="../../translations.js"></script>
     <script src="admin.js"></script>
     
-    <!-- Button click handler (backup to onclick) -->
+    <!-- Global login button handler (works immediately, no DOMContentLoaded needed) -->
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('[Admin] DOM loaded, setting up login button');
+      // Global function that can be called from onclick attribute
+      function handleLoginClick(event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
         
-        // Backup button click handler
+        console.log('[Admin] Login button clicked (onclick handler)');
+        
+        // Try IdentityManager first
+        if (window.IdentityManager && typeof window.IdentityManager.openLogin === 'function') {
+          console.log('[Admin] Using IdentityManager to open login');
+          window.IdentityManager.openLogin();
+          return;
+        }
+        
+        // Try adminApp
+        if (typeof adminApp !== 'undefined' && typeof adminApp.openLogin === 'function') {
+          console.log('[Admin] Using adminApp to open login');
+          adminApp.openLogin();
+          return;
+        }
+        
+        // Try direct netlifyIdentity
+        if (window.netlifyIdentity && typeof window.netlifyIdentity.open === 'function') {
+          console.log('[Admin] Using direct netlifyIdentity to open login');
+          try {
+            window.netlifyIdentity.open('login');
+            console.log('[Admin] Login modal opened successfully');
+            return;
+          } catch (error) {
+            console.error('[Admin] Error opening login:', error);
+          }
+        }
+        
+        // Fallback: wait a bit and try again (in case scripts are still loading)
+        console.log('[Admin] Identity not ready, waiting 500ms...');
+        setTimeout(function() {
+          if (window.netlifyIdentity && typeof window.netlifyIdentity.open === 'function') {
+            try {
+              window.netlifyIdentity.open('login');
+              console.log('[Admin] Login modal opened after delay');
+            } catch (error) {
+              console.error('[Admin] Error opening login after delay:', error);
+              alert('Error opening login. Please refresh the page and try again.');
+            }
+          } else {
+            console.error('[Admin] Cannot open login - Identity not available');
+            alert('Netlify Identity is not loaded. Please refresh the page.');
+          }
+        }, 500);
+      }
+      
+      // Also set up event listener as backup (in case onclick doesn't work)
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('[Admin] DOM loaded, setting up backup login button handler');
         const loginButton = document.getElementById('loginButton');
         if (loginButton) {
-          console.log('[Admin] Login button found, adding click handler');
-          loginButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('[Admin] Login button clicked');
-            
-            // Try IdentityManager first
-            if (window.IdentityManager) {
-              console.log('[Admin] Using IdentityManager to open login');
-              window.IdentityManager.openLogin();
-            } else if (typeof adminApp !== 'undefined' && adminApp.openLogin) {
-              console.log('[Admin] Using adminApp to open login');
-              adminApp.openLogin();
-            } else if (window.netlifyIdentity) {
-              console.log('[Admin] Using direct netlifyIdentity to open login');
-              try {
-                window.netlifyIdentity.open('login');
-              } catch (error) {
-                console.error('[Admin] Error opening login:', error);
-                alert('Error opening login. Please refresh the page.');
-              }
-            } else {
-              console.error('[Admin] Cannot open login - no Identity available');
-              alert('Netlify Identity is not loaded. Please refresh the page.');
-            }
-          });
-        } else {
-          console.error('[Admin] Login button not found!');
+          // Remove any existing listeners and add fresh one
+          const newButton = loginButton.cloneNode(true);
+          loginButton.parentNode.replaceChild(newButton, loginButton);
+          
+          newButton.addEventListener('click', handleLoginClick);
+          console.log('[Admin] Backup event listener added');
         }
       });
     </script>
