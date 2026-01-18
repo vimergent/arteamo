@@ -1,5 +1,6 @@
 // Studio Arteamo Admin - Minimalist CMS
 // Enhanced security and functionality
+console.log('[admin.js] FILE LOADED - v2');
 
 const adminApp = {
     // Security utilities
