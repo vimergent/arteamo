@@ -932,30 +932,9 @@ if (typeof module !== 'undefined' && module.exports) {
         this.showToast('Password updated successfully', 'success');
     },
 
-    exportData() {
-        this.showToast('Exporting data...', 'info');
-        // Implementation for export functionality
-    },
-
-    viewWebsite() {
-        window.open('../index.html', '_blank');
-    },
-
-    logout() {
-        sessionStorage.clear();
-        this.state.isAuthenticated = false;
-        this.showAuthScreen();
-    },
-
-    createBackup() {
-        this.showToast('Creating backup...', 'info');
-        // Implementation for backup
-    },
-
-    restoreBackup() {
-        this.showToast('Restore functionality coming soon', 'info');
-    },
-
+    // Note: exportData(), viewWebsite(), logout(), createBackup(), restoreBackup() 
+    // are defined earlier in this file - removed duplicates that were overwriting them
+    
     saveContent() {
         this.showToast('Content saved successfully', 'success');
     }
