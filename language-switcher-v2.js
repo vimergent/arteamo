@@ -1,13 +1,40 @@
 // Improved Language Switcher Component
 class LanguageSwitcher {
     constructor() {
-        this.currentLang = localStorage.getItem('selectedLanguage') || localStorage.getItem('language') || 'bg';
+        // Supported languages
+        this.supportedLangs = ['en', 'bg', 'ru', 'es'];
+
+        // Get language with proper fallback: localStorage -> browser -> English
+        this.currentLang = this.getInitialLanguage();
+
         // Wait for DOM and translations to load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.init());
         } else {
             this.init();
         }
+    }
+
+    getInitialLanguage() {
+        // 1. Check localStorage first (user's explicit choice)
+        const storedLang = localStorage.getItem('selectedLanguage') || localStorage.getItem('language');
+        if (storedLang && this.supportedLangs.includes(storedLang)) {
+            return storedLang;
+        }
+
+        // 2. Detect browser language
+        const browserLang = navigator.language || navigator.userLanguage || '';
+        const langCode = browserLang.split('-')[0].toLowerCase(); // 'en-US' -> 'en'
+
+        if (this.supportedLangs.includes(langCode)) {
+            // Save to localStorage so it persists
+            localStorage.setItem('selectedLanguage', langCode);
+            return langCode;
+        }
+
+        // 3. Default to English
+        localStorage.setItem('selectedLanguage', 'en');
+        return 'en';
     }
 
     init() {

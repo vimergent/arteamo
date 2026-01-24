@@ -729,7 +729,7 @@
                 <svg class="back-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
-                <span>Portfolio</span>
+                <span id="backToPortfolio">Portfolio</span>
             </a>
             
             <div class="gallery-meta">
@@ -759,15 +759,15 @@
                     <div class="hero-stats">
                         <div class="stat">
                             <span class="stat-number" id="statImages">0</span>
-                            <span class="stat-label">Images</span>
+                            <span class="stat-label" id="labelImages">Images</span>
                         </div>
                         <div class="stat">
                             <span class="stat-number" id="statYear">2024</span>
-                            <span class="stat-label">Year</span>
+                            <span class="stat-label" id="labelYear">Year</span>
                         </div>
                         <div class="stat">
                             <span class="stat-number" id="statArea">120m²</span>
-                            <span class="stat-label">Area</span>
+                            <span class="stat-label" id="labelArea">Area</span>
                         </div>
                     </div>
                 </div>
@@ -783,8 +783,8 @@
     <!-- Sophisticated Gallery Grid -->
     <section class="gallery-section">
         <div class="section-header">
-            <div class="section-title">Project Gallery</div>
-            <div class="section-subtitle">Complete Visual Story</div>
+            <div class="section-title" id="sectionTitle">Project Gallery</div>
+            <div class="section-subtitle" id="sectionSubtitle">Complete Visual Story</div>
         </div>
         
         <div class="gallery-grid" id="galleryGrid">
@@ -835,17 +835,97 @@
         let currentImageIndex = 0;
         let projectImages = [];
         let isLightboxOpen = false;
-        
-        // Get current language
-        const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-        
+
+        // Supported languages
+        const supportedLangs = ['en', 'bg', 'ru', 'es'];
+
+        // Get language with browser detection and fallback to English
+        function getLanguage() {
+            // 1. Check localStorage first (user's explicit choice)
+            const storedLang = localStorage.getItem('selectedLanguage') || localStorage.getItem('language');
+            if (storedLang && supportedLangs.includes(storedLang)) {
+                return storedLang;
+            }
+
+            // 2. Detect browser language
+            const browserLang = navigator.language || navigator.userLanguage || '';
+            const langCode = browserLang.split('-')[0].toLowerCase();
+
+            if (supportedLangs.includes(langCode)) {
+                localStorage.setItem('selectedLanguage', langCode);
+                return langCode;
+            }
+
+            // 3. Default to English
+            localStorage.setItem('selectedLanguage', 'en');
+            return 'en';
+        }
+
+        const currentLang = getLanguage();
+
+        // Gallery UI translations
+        const galleryTranslations = {
+            en: {
+                projectGallery: "PROJECT GALLERY",
+                completeVisualStory: "Complete Visual Story",
+                images: "Images",
+                year: "YEAR",
+                area: "AREA",
+                portfolio: "Portfolio"
+            },
+            bg: {
+                projectGallery: "ГАЛЕРИЯ НА ПРОЕКТА",
+                completeVisualStory: "Пълна визуална история",
+                images: "Изображения",
+                year: "ГОДИНА",
+                area: "ПЛОЩ",
+                portfolio: "Портфолио"
+            },
+            ru: {
+                projectGallery: "ГАЛЕРЕЯ ПРОЕКТА",
+                completeVisualStory: "Полная визуальная история",
+                images: "Изображения",
+                year: "ГОД",
+                area: "ПЛОЩАДЬ",
+                portfolio: "Портфолио"
+            },
+            es: {
+                projectGallery: "GALERÍA DEL PROYECTO",
+                completeVisualStory: "Historia visual completa",
+                images: "Imágenes",
+                year: "AÑO",
+                area: "ÁREA",
+                portfolio: "Portafolio"
+            }
+        };
+
+        function applyGalleryTranslations(imageCount) {
+            const t = galleryTranslations[currentLang] || galleryTranslations.en;
+
+            const sectionTitle = document.getElementById('sectionTitle');
+            const sectionSubtitle = document.getElementById('sectionSubtitle');
+            const labelImages = document.getElementById('labelImages');
+            const labelYear = document.getElementById('labelYear');
+            const labelArea = document.getElementById('labelArea');
+            const progressText = document.getElementById('progressText');
+            const backToPortfolio = document.getElementById('backToPortfolio');
+
+            if (sectionTitle) sectionTitle.textContent = t.projectGallery;
+            if (sectionSubtitle) sectionSubtitle.textContent = t.completeVisualStory;
+            if (labelImages) labelImages.textContent = t.images;
+            if (labelYear) labelYear.textContent = t.year;
+            if (labelArea) labelArea.textContent = t.area;
+            if (progressText) progressText.textContent = `${imageCount} ${t.images}`;
+            if (backToPortfolio) backToPortfolio.textContent = t.portfolio;
+        }
+
         // Transform project config for gallery use
         const projectData = {};
         for (const [folder, config] of Object.entries(projectConfig)) {
             projectData[folder] = {
                 name: config.name[currentLang] || config.name.en,
-                subtitle: config.subtitle[currentLang] || config.subtitle.en,
-                description: config.description[currentLang] || config.description.en,
+                subtitle: config.subtitle[currentLang] || config.subtitle.en || '',
+                description: config.description[currentLang] || config.description.en || '',
                 year: config.year.toString(),
                 area: config.area + 'm²',
                 images: config.images
@@ -882,8 +962,10 @@
             document.getElementById('statImages').textContent = projectImages.length;
             document.getElementById('statYear').textContent = project.year;
             document.getElementById('statArea').textContent = project.area;
-            document.getElementById('progressText').textContent = `${projectImages.length} Images`;
             document.title = `${project.name} - Studio Arteamo`;
+
+            // Apply gallery UI translations
+            applyGalleryTranslations(projectImages.length);
             
             // Set hero image
             const heroImage = document.getElementById('heroImage');

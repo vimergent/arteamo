@@ -63,6 +63,17 @@ const translations = {
             viewProject: "View Project",
             recentWorks: "Recent Works"
         },
+        // Gallery
+        gallery: {
+            projectGallery: "PROJECT GALLERY",
+            completeVisualStory: "Complete Visual Story",
+            images: "Images",
+            year: "YEAR",
+            area: "AREA",
+            backToPortfolio: "Portfolio",
+            downloadImage: "Download Image",
+            closeGallery: "Close"
+        },
         // Contact
         contact: {
             title: "Get In Touch",
@@ -509,6 +520,17 @@ const translations = {
             corporate: "Корпоративни",
             viewProject: "Виж проекта",
             recentWorks: "Последни проекти"
+        },
+        // Gallery
+        gallery: {
+            projectGallery: "ГАЛЕРИЯ НА ПРОЕКТА",
+            completeVisualStory: "Пълна визуална история",
+            images: "Изображения",
+            year: "ГОДИНА",
+            area: "ПЛОЩ",
+            backToPortfolio: "Портфолио",
+            downloadImage: "Изтегли изображението",
+            closeGallery: "Затвори"
         },
         // Contact
         contact: {
@@ -957,6 +979,17 @@ const translations = {
             viewProject: "Посмотреть проект",
             recentWorks: "Последние работы"
         },
+        // Gallery
+        gallery: {
+            projectGallery: "ГАЛЕРЕЯ ПРОЕКТА",
+            completeVisualStory: "Полная визуальная история",
+            images: "Изображения",
+            year: "ГОД",
+            area: "ПЛОЩАДЬ",
+            backToPortfolio: "Портфолио",
+            downloadImage: "Скачать изображение",
+            closeGallery: "Закрыть"
+        },
         // Contact
         contact: {
             title: "Связаться с нами",
@@ -1403,6 +1436,17 @@ const translations = {
             corporate: "Corporativo",
             viewProject: "Ver proyecto",
             recentWorks: "Trabajos recientes"
+        },
+        // Gallery
+        gallery: {
+            projectGallery: "GALERÍA DEL PROYECTO",
+            completeVisualStory: "Historia visual completa",
+            images: "Imágenes",
+            year: "AÑO",
+            area: "ÁREA",
+            backToPortfolio: "Portafolio",
+            downloadImage: "Descargar imagen",
+            closeGallery: "Cerrar"
         },
         // Contact
         contact: {
