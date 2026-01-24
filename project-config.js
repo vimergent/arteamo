@@ -18,7 +18,7 @@ const projectConfig = {
     },
     "description": {
       "bg": "Модерно убежище, съчетаващо елегантност с комфорт в сърцето на Варна.",
-      "en": "TEST-MARKER: A modern sanctuary combining elegance with comfort in the heart of Varna.",
+      "en": "A modern sanctuary combining elegance with comfort in the heart of Varna.",
       "ru": "Современное убежище, сочетающее элегантность и комфорт в сердце Варны.",
       "es": "Un santuario moderno que combina elegancia con comodidad en el corazón de Varna."
     },
