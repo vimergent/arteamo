@@ -35,7 +35,8 @@
 </head>
 <body>
     <!-- Hidden form for Netlify Forms detection (required for dynamic forms) -->
-    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+    <form hidden method="post" name="contact" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="contact" />
         <input type="text" name="name" />
         <input type="email" name="email" />
         <input type="tel" name="phone" />
