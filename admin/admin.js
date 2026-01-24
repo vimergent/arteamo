@@ -346,12 +346,57 @@ const adminApp = {
         this.state.currentProject = null;
     },
 
-    // Export/Import
+    // Export/Deploy - Commits changes to GitHub
     async exportData() {
         try {
+            this.showToast('Deploying changes to GitHub...', 'info');
+            this.updateSaveStatus('Deploying...');
+
             const projectConfigContent = this.generateProjectConfig();
-            
-            // Create and download file
+
+            const response = await fetch('/.netlify/functions/commit-config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: projectConfigContent,
+                    message: `CMS: Update project configuration - ${new Date().toLocaleString()}`,
+                    filePath: 'project-config.js'
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                this.showToast('Changes deployed successfully! Site will rebuild automatically.', 'success');
+                this.state.hasUnsavedChanges = false;
+                this.updateSaveStatus('Deployed successfully');
+
+                // Show commit info
+                if (result.commit?.sha) {
+                    console.log('Commit SHA:', result.commit.sha);
+                    console.log('Commit URL:', result.commit.url);
+                }
+            } else {
+                throw new Error(result.error || result.details || 'Deployment failed');
+            }
+        } catch (error) {
+            console.error('Deploy error:', error);
+            this.showToast(`Deployment failed: ${error.message}`, 'error');
+            this.updateSaveStatus('Deploy failed');
+
+            // Offer to download as fallback
+            if (confirm('Deployment failed. Would you like to download the configuration file instead?')) {
+                this.downloadConfigFile();
+            }
+        }
+    },
+
+    // Fallback: Download config file locally
+    downloadConfigFile() {
+        try {
+            const projectConfigContent = this.generateProjectConfig();
             const blob = new Blob([projectConfigContent], { type: 'text/javascript' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -359,13 +404,10 @@ const adminApp = {
             a.download = 'project-config.js';
             a.click();
             URL.revokeObjectURL(url);
-            
-            this.showToast('Configuration exported successfully', 'success');
-            this.state.hasUnsavedChanges = false;
-            this.updateSaveStatus('All changes exported');
+            this.showToast('Configuration downloaded', 'success');
         } catch (error) {
-            console.error('Export error:', error);
-            this.showToast('Error exporting configuration', 'error');
+            console.error('Download error:', error);
+            this.showToast('Error downloading configuration', 'error');
         }
     },
 
@@ -695,54 +737,7 @@ if (typeof module !== 'undefined' && module.exports) {
         localStorage.setItem('siteSettings', JSON.stringify(settings));
     },
 
-    // Other admin functions
-    changePassword() {
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (!newPassword || !confirmPassword) {
-            this.showToast('Please fill in both password fields', 'error');
-            return;
-        }
-        
-        if (newPassword !== confirmPassword) {
-            this.showToast('Passwords do not match', 'error');
-            return;
-        }
-        
-        if (newPassword.length < 8) {
-            this.showToast('Password must be at least 8 characters', 'error');
-            return;
-        }
-        
-        // In production, this would update the password on the server
-        this.showToast('Password updated successfully', 'success');
-    },
-
-    exportData() {
-        this.showToast('Exporting data...', 'info');
-        // Implementation for export functionality
-    },
-
-    viewWebsite() {
-        window.open('../index.html', '_blank');
-    },
-
-    logout() {
-        sessionStorage.clear();
-        this.state.isAuthenticated = false;
-        this.showAuthScreen();
-    },
-
-    createBackup() {
-        this.showToast('Creating backup...', 'info');
-        // Implementation for backup
-    },
-
-    restoreBackup() {
-        this.showToast('Restore functionality coming soon', 'info');
-    },
-
+    // Save content (placeholder for future content management)
     saveContent() {
         this.showToast('Content saved successfully', 'success');
     }

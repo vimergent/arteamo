@@ -302,36 +302,30 @@ class ContactForm {
     }
 
     async handleSubmit(e) {
-        // Netlify Forms will handle the submission automatically
-        // We'll just handle the UI feedback
-        
+        e.preventDefault();
+
         const form = e.target;
         const submitBtn = form.querySelector('.submit-btn');
+        const statusDiv = document.getElementById('formStatus');
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-        const translations = window.translations[currentLang].contact;
-        
+        const translations = window.translations?.[currentLang]?.contact || {};
+
         // Update button text during submission
         submitBtn.disabled = true;
         submitBtn.textContent = translations.formSending || 'Sending...';
-        
-        // Let Netlify handle the form submission
-        // The form will redirect or show success based on Netlify's response
-        
-        // Note: If you want to handle the submission via AJAX instead:
-        // Uncomment the following code and prevent default submission
-        
-        /*
-        e.preventDefault();
-        
+
+        // Hide any previous status
+        statusDiv.style.display = 'none';
+
         const formData = new FormData(form);
-        
+
         try {
             const response = await fetch('/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(formData).toString()
             });
-            
+
             if (response.ok) {
                 // Show success message
                 form.style.display = 'none';
@@ -340,7 +334,7 @@ class ContactForm {
                 throw new Error('Form submission failed');
             }
         } catch (error) {
-            const statusDiv = document.getElementById('formStatus');
+            console.error('Form submission error:', error);
             statusDiv.className = 'form-status error';
             statusDiv.textContent = translations.formError || 'Error sending message. Please try again.';
             statusDiv.style.display = 'block';
@@ -348,7 +342,6 @@ class ContactForm {
             submitBtn.disabled = false;
             submitBtn.textContent = translations.formSubmit || 'Send Message';
         }
-        */
     }
 }
 

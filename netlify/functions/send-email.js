@@ -27,8 +27,8 @@ exports.handler = async (event, context) => {
 
     // Email configuration
     const emailConfig = {
-      // First check if there's a custom email in the request (from admin settings)
-      to: event.body.adminEmail || process.env.CONTACT_EMAIL || 'petyaem@abv.bg',
+      // Use environment variable or default email
+      to: process.env.CONTACT_EMAIL || 'petyaem@abv.bg',
       subject: `[Studio Arteamo] ${data.subject}`,
       html: `
         <h2>New Contact Form Submission</h2>
