@@ -317,21 +317,31 @@ class ContactForm {
         // Hide any previous status
         statusDiv.style.display = 'none';
 
-        const formData = new FormData(form);
+        // Collect form data as JSON
+        const formData = {
+            name: form.querySelector('#name')?.value || '',
+            email: form.querySelector('#email')?.value || '',
+            phone: form.querySelector('#phone')?.value || '',
+            subject: form.querySelector('#subject')?.value || '',
+            message: form.querySelector('#message')?.value || '',
+            language: currentLang
+        };
 
         try {
-            const response = await fetch('/', {
+            const response = await fetch('/.netlify/functions/send-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(formData).toString()
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
             });
 
-            if (response.ok) {
+            const result = await response.json();
+
+            if (response.ok && result.success) {
                 // Show success message
                 form.style.display = 'none';
                 document.getElementById('formSuccess').style.display = 'block';
             } else {
-                throw new Error('Form submission failed');
+                throw new Error(result.error || 'Form submission failed');
             }
         } catch (error) {
             console.error('Form submission error:', error);
