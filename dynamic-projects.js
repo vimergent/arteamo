@@ -24,10 +24,17 @@ const projectManager = {
             console.error('Projects grid not found');
             return;
         }
-        
+
         if (typeof projectConfig === 'undefined') {
             console.error('Project config not found, retrying in 500ms...');
             setTimeout(() => this.loadProjects(), 500);
+            return;
+        }
+
+        // FIXED: Wait for translations to be loaded
+        if (typeof window.translations === 'undefined') {
+            console.log('Translations not ready, retrying in 200ms...');
+            setTimeout(() => this.loadProjects(), 200);
             return;
         }
 
@@ -36,8 +43,6 @@ const projectManager = {
 
         // Get current language
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-
-        console.log('Loading projects:', Object.keys(projectConfig).length);
 
         // Convert projectConfig to array and render
         Object.entries(projectConfig).forEach(([folderName, projectData]) => {
@@ -56,11 +61,11 @@ const projectManager = {
         card.setAttribute('data-category', projectData.category || 'residential');
         card.setAttribute('data-year', projectData.year || '2024');
         card.style.cursor = 'pointer';
-        card.onclick = () => this.openProjectGallery(folderName, projectData.name[lang] || projectData.name.en);
+        card.onclick = () => this.openProjectGallery(folderName, projectData.name?.[lang] || projectData.name?.en || folderName);
 
-        // Get translated category name
+        // Get translated category name - check multiple locations
         const categoryKey = this.getCategoryTranslationKey(projectData.category);
-        const categoryName = window.translations?.[lang]?.projects?.[categoryKey] || projectData.category;
+        const categoryName = this.getTranslatedCategory(categoryKey, lang, projectData.category);
 
         // Build the HTML with proper structure
         const projectName = projectData.name?.[lang] || projectData.name?.en || folderName;
@@ -100,6 +105,22 @@ const projectManager = {
             'corporate': 'corporate'
         };
         return categoryMap[category] || category;
+    },
+
+    // Get translated category - checks multiple locations in translations
+    getTranslatedCategory(categoryKey, lang, fallback) {
+        const t = window.translations?.[lang];
+        if (!t) return fallback;
+
+        // Check in projects section first
+        if (t.projects?.[categoryKey]) return t.projects[categoryKey];
+        // Then check in filters section
+        if (t.filters?.[categoryKey]) return t.filters[categoryKey];
+        // Then check in gallery section
+        if (t.gallery?.[categoryKey]) return t.gallery[categoryKey];
+
+        // Capitalize fallback
+        return fallback ? fallback.charAt(0).toUpperCase() + fallback.slice(1) : '';
     },
 
     // Open project gallery
