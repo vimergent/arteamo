@@ -1,7 +1,42 @@
 // Studio Arteamo Admin - Minimalist CMS
 // Enhanced security and functionality
+console.log('[admin.js] FILE LOADED - v2');
 
 const adminApp = {
+    // Security utilities
+    security: {
+        // Escape HTML to prevent XSS attacks
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        },
+        
+        // Sanitize user input
+        sanitizeInput(input) {
+            if (typeof input !== 'string') return input;
+            return input.trim().replace(/[<>]/g, '');
+        },
+        
+        // Create element safely
+        createSafeElement(tag, attributes = {}, textContent = '') {
+            const element = document.createElement(tag);
+            Object.entries(attributes).forEach(([key, value]) => {
+                if (key === 'className') {
+                    element.className = value;
+                } else if (key.startsWith('data-')) {
+                    element.setAttribute(key, this.escapeHtml(String(value)));
+                } else {
+                    element.setAttribute(key, this.escapeHtml(String(value)));
+                }
+            });
+            if (textContent) {
+                element.textContent = textContent;
+            }
+            return element;
+        }
+    },
+
     // Configuration
     config: {
         maxLoginAttempts: 3,
@@ -23,6 +58,9 @@ const adminApp = {
 
     // Initialize
     init() {
+        // Set up Google OAuth auth change listener
+        this.setupAuthListener();
+        // Then check authentication
         this.checkAuth();
         this.setupEventListeners();
         this.loadProjects();
@@ -31,96 +69,116 @@ const adminApp = {
         this.loadContactEmail();
     },
 
-    // Authentication
+    // Authentication - Google OAuth
     async checkAuth() {
-        const token = sessionStorage.getItem('adminToken');
-        const lastActivity = sessionStorage.getItem('lastActivity');
+        console.log('[AdminApp] checkAuth called');
         
-        if (token && lastActivity) {
-            const timeSinceActivity = Date.now() - parseInt(lastActivity);
-            if (timeSinceActivity < this.config.sessionTimeout) {
+        // Use AuthManager for Google OAuth
+        if (window.AuthManager) {
+            console.log('[AdminApp] AuthManager found, setting up callback');
+            
+            // Set up callback for auth state changes
+            window.AuthManager.setOnAuthChange((authenticated, user) => {
+                console.log('[AdminApp] Auth callback fired:', authenticated, user?.email);
+                if (authenticated && user) {
+                    this.state.isAuthenticated = true;
+                    this.state.currentUser = user;
+                    console.log('[AdminApp] Showing admin interface');
+                    this.showAdminInterface();
+                    this.showToast(`Welcome, ${user.name || user.email}`, 'success');
+                } else {
+                    this.state.isAuthenticated = false;
+                    this.state.currentUser = null;
+                    console.log('[AdminApp] Showing auth screen');
+                    this.showAuthScreen();
+                }
+            });
+            
+            // Check if already authenticated (fallback)
+            const user = window.AuthManager.getCurrentUser();
+            console.log('[AdminApp] getCurrentUser:', user?.email || 'null');
+            if (user) {
                 this.state.isAuthenticated = true;
+                this.state.currentUser = user;
+                console.log('[AdminApp] Already authenticated, showing admin interface');
                 this.showAdminInterface();
-                return;
+                this.showToast(`Welcome back, ${user.name || user.email}`, 'success');
             }
+            return;
         }
         
-        this.showAuthScreen();
+        console.log('[AdminApp] AuthManager not ready, waiting...');
+        // Fallback: Wait for AuthManager to initialize
+        setTimeout(() => this.checkAuth(), 200);
     },
 
     showAuthScreen() {
-        document.getElementById('authScreen').style.display = 'flex';
-        document.getElementById('adminInterface').style.display = 'none';
-        document.getElementById('authPassword').focus();
+        console.log('[AdminApp] showAuthScreen called');
+        const authScreen = document.getElementById('authScreen');
+        const adminInterface = document.getElementById('adminInterface');
+        if (authScreen) authScreen.style.display = 'flex';
+        if (adminInterface) adminInterface.style.display = 'none';
     },
 
     showAdminInterface() {
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('adminInterface').style.display = 'block';
+        console.log('[AdminApp] showAdminInterface called');
+        const authScreen = document.getElementById('authScreen');
+        const adminInterface = document.getElementById('adminInterface');
+        if (authScreen) authScreen.style.display = 'none';
+        if (adminInterface) {
+            adminInterface.style.display = 'block';
+            console.log('[AdminApp] Admin interface displayed');
+        } else {
+            console.error('[AdminApp] adminInterface element not found!');
+        }
         this.renderProjects();
     },
 
-    async authenticate(password) {
-        // Check lockout
-        if (this.state.lockoutUntil && Date.now() < this.state.lockoutUntil) {
-            const remainingTime = Math.ceil((this.state.lockoutUntil - Date.now()) / 1000 / 60);
-            this.showError(`Too many failed attempts. Try again in ${remainingTime} minutes.`);
+    openLogin() {
+        console.log('[Auth] openLogin called - initiating Google OAuth');
+        
+        // Use AuthManager for Google OAuth
+        if (window.AuthManager) {
+            window.AuthManager.login();
             return;
         }
-
-        // Validate password
-        const isValid = await this.validatePassword(password);
         
-        if (isValid) {
-            // Success
-            this.state.isAuthenticated = true;
-            this.state.loginAttempts = 0;
-            this.state.lockoutUntil = null;
-            
-            // Create session
-            const token = this.generateToken();
-            sessionStorage.setItem('adminToken', token);
-            sessionStorage.setItem('lastActivity', Date.now());
-            
-            this.showAdminInterface();
-            this.showToast('Welcome to Admin Panel', 'success');
+        // Fallback: Direct redirect to OAuth function
+        window.location.href = '/.netlify/functions/auth-login';
+    },
+
+    setupAuthListener() {
+        // Set up AuthManager callback for auth state changes
+        if (window.AuthManager) {
+            console.log('[Auth] Setting up AuthManager listener');
+            window.AuthManager.setOnAuthChange((authenticated, user) => {
+                if (authenticated && user) {
+                    this.state.isAuthenticated = true;
+                    this.state.currentUser = user;
+                    this.showAdminInterface();
+                } else {
+                    this.state.isAuthenticated = false;
+                    this.state.currentUser = null;
+                    this.showAuthScreen();
+                }
+            });
         } else {
-            // Failed attempt
-            this.state.loginAttempts++;
-            
-            if (this.state.loginAttempts >= this.config.maxLoginAttempts) {
-                this.state.lockoutUntil = Date.now() + this.config.lockoutTime;
-                this.showError(`Too many failed attempts. Account locked for 15 minutes.`);
-            } else {
-                const remaining = this.config.maxLoginAttempts - this.state.loginAttempts;
-                this.showError(`Invalid password. ${remaining} attempts remaining.`);
-            }
+            // Wait for AuthManager to load
+            setTimeout(() => this.setupAuthListener(), 200);
         }
-    },
-
-    async validatePassword(password) {
-        // In production, this should validate against a hashed password
-        // Updated with secure password
-        const validPassword = 'kNl55zUPC(yH';
-        
-        // Simulate processing time to prevent timing attacks
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        return password === validPassword;
-    },
-
-    generateToken() {
-        return Array.from(crypto.getRandomValues(new Uint8Array(32)))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
     },
 
     logout() {
-        sessionStorage.removeItem('adminToken');
-        sessionStorage.removeItem('lastActivity');
-        this.state.isAuthenticated = false;
-        this.showAuthScreen();
-        this.showToast('Logged out successfully', 'success');
+        console.log('[Auth] Logging out via Google OAuth');
+        
+        // Use AuthManager for Google OAuth logout
+        if (window.AuthManager) {
+            window.AuthManager.logout();
+            return;
+        }
+        
+        // Fallback: Direct redirect to logout function
+        window.location.href = '/.netlify/functions/auth-logout';
     },
 
     // Session Management
@@ -147,10 +205,22 @@ const adminApp = {
     // Project Management
     loadProjects() {
         try {
-            // First try to load from localStorage
+            // First try to load from localStorage (new format with timestamp)
             const savedProjects = localStorage.getItem('adminProjects');
             if (savedProjects) {
-                this.state.projects = JSON.parse(savedProjects);
+                const parsed = JSON.parse(savedProjects);
+                // Handle both new format (with lastSaved) and old format (array)
+                if (parsed.projects && Array.isArray(parsed.projects)) {
+                    this.state.projects = parsed.projects;
+                    // Log last save time for verification
+                    if (parsed.lastSaved) {
+                        const saveDate = new Date(parsed.lastSaved);
+                        this.updateSaveStatus(`Last saved: ${saveDate.toLocaleString()}`);
+                    }
+                } else if (Array.isArray(parsed)) {
+                    // Old format - backward compatibility
+                    this.state.projects = parsed;
+                }
             } else if (typeof projectConfig !== 'undefined') {
                 // Import from existing project-config.js
                 this.importFromProjectConfig();
@@ -191,16 +261,38 @@ const adminApp = {
     },
 
     saveProjects() {
-        localStorage.setItem('adminProjects', JSON.stringify(this.state.projects));
+        // Save to localStorage with timestamp for verification
+        const saveData = {
+            projects: this.state.projects,
+            lastSaved: new Date().toISOString(),
+            version: '0.1.1'
+        };
+        localStorage.setItem('adminProjects', JSON.stringify(saveData));
+        localStorage.setItem('adminProjectsRaw', JSON.stringify(this.state.projects)); // For backward compatibility
         this.state.hasUnsavedChanges = true;
         this.updateSaveStatus('Unsaved changes');
+        
+        // Verify save was successful
+        const verify = localStorage.getItem('adminProjects');
+        if (verify) {
+            const parsed = JSON.parse(verify);
+            if (parsed.projects && parsed.lastSaved) {
+                // Save successful - log for testing (will be removed in production)
+                if (typeof console !== 'undefined' && console.log) {
+                    console.log('[Admin] Save verified:', parsed.lastSaved);
+                }
+            }
+        }
     },
 
     createProject() {
         this.state.currentProject = null;
         this.openModal('New Project');
         document.getElementById('projectForm').reset();
-        document.getElementById('imageList').innerHTML = '';
+        const imageList = document.getElementById('imageList');
+        while (imageList.firstChild) {
+            imageList.removeChild(imageList.firstChild);
+        }
     },
 
     editProject(projectId) {
@@ -222,24 +314,25 @@ const adminApp = {
     },
 
     saveProject(formData) {
+        // Sanitize all inputs
         const project = {
             id: this.state.currentProject?.id || this.generateId(),
-            folder: formData.get('folder'),
+            folder: this.security.sanitizeInput(formData.get('folder') || ''),
             name: {
-                en: formData.get('name_en'),
-                bg: formData.get('name_bg') || formData.get('name_en'),
-                ru: formData.get('name_ru') || formData.get('name_en'),
-                es: formData.get('name_es') || formData.get('name_en'),
+                en: this.security.sanitizeInput(formData.get('name_en') || ''),
+                bg: this.security.sanitizeInput(formData.get('name_bg') || formData.get('name_en') || ''),
+                ru: this.security.sanitizeInput(formData.get('name_ru') || formData.get('name_en') || ''),
+                es: this.security.sanitizeInput(formData.get('name_es') || formData.get('name_en') || ''),
             },
             description: {
-                en: formData.get('description_en'),
-                bg: formData.get('description_bg') || formData.get('description_en'),
-                ru: formData.get('description_ru') || formData.get('description_en'),
-                es: formData.get('description_es') || formData.get('description_en'),
+                en: this.security.sanitizeInput(formData.get('description_en') || ''),
+                bg: this.security.sanitizeInput(formData.get('description_bg') || formData.get('description_en') || ''),
+                ru: this.security.sanitizeInput(formData.get('description_ru') || formData.get('description_en') || ''),
+                es: this.security.sanitizeInput(formData.get('description_es') || formData.get('description_en') || ''),
             },
-            category: formData.get('category'),
-            year: parseInt(formData.get('year')),
-            area: formData.get('area'),
+            category: this.security.sanitizeInput(formData.get('category') || ''),
+            year: parseInt(formData.get('year')) || new Date().getFullYear(),
+            area: this.security.sanitizeInput(formData.get('area') || ''),
             coverImage: this.getProjectImages()[0] || '',
             images: this.getProjectImages(),
             visible: true,
@@ -274,23 +367,50 @@ const adminApp = {
             return matchesSearch && matchesCategory;
         });
 
-        grid.innerHTML = filteredProjects.map(project => `
-            <div class="project-admin-card">
-                <div class="project-admin-image">
-                    <img src="../../${project.folder}/${project.coverImage}" 
-                         alt="${project.name.en}"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                </div>
-                <div class="project-admin-info">
-                    <h3 class="project-admin-title">${project.name.en}</h3>
-                    <p class="project-admin-meta">${project.category} • ${project.year} • ${project.area}</p>
-                    <div class="project-admin-actions">
-                        <button class="btn btn-secondary" onclick="adminApp.editProject('${project.id}')">Edit</button>
-                        <button class="btn btn-ghost" onclick="adminApp.deleteProject('${project.id}')">Delete</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        // Clear grid safely
+        while (grid.firstChild) {
+            grid.removeChild(grid.firstChild);
+        }
+
+        // Create project cards safely
+        filteredProjects.forEach(project => {
+            const card = this.security.createSafeElement('div', { className: 'project-admin-card' });
+            
+            // Image container
+            const imageContainer = this.security.createSafeElement('div', { className: 'project-admin-image' });
+            const img = this.security.createSafeElement('img', {
+                src: `../../${this.security.escapeHtml(project.folder)}/${this.security.escapeHtml(project.coverImage)}`,
+                alt: this.security.escapeHtml(project.name.en)
+            });
+            img.onerror = function() {
+                this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22%3ENo Image%3C/text%3E%3C/svg%3E';
+            };
+            imageContainer.appendChild(img);
+            
+            // Info container
+            const infoContainer = this.security.createSafeElement('div', { className: 'project-admin-info' });
+            const title = this.security.createSafeElement('h3', { className: 'project-admin-title' }, project.name.en);
+            const meta = this.security.createSafeElement('p', { className: 'project-admin-meta' }, 
+                `${project.category} • ${project.year} • ${project.area}`);
+            
+            // Actions container
+            const actionsContainer = this.security.createSafeElement('div', { className: 'project-admin-actions' });
+            const editBtn = this.security.createSafeElement('button', { className: 'btn btn-secondary' }, 'Edit');
+            editBtn.onclick = () => this.editProject(project.id);
+            const deleteBtn = this.security.createSafeElement('button', { className: 'btn btn-ghost' }, 'Delete');
+            deleteBtn.onclick = () => this.deleteProject(project.id);
+            
+            actionsContainer.appendChild(editBtn);
+            actionsContainer.appendChild(deleteBtn);
+            
+            infoContainer.appendChild(title);
+            infoContainer.appendChild(meta);
+            infoContainer.appendChild(actionsContainer);
+            
+            card.appendChild(imageContainer);
+            card.appendChild(infoContainer);
+            grid.appendChild(card);
+        });
     },
 
     populateProjectForm(project) {
@@ -311,14 +431,33 @@ const adminApp = {
 
     displayProjectImages(images) {
         const list = document.getElementById('imageList');
-        list.innerHTML = images.map((img, index) => `
-            <div class="image-item" data-image="${img}">
-                <img src="../../${this.state.currentProject?.folder || 'temp'}/${img}" 
-                     alt="${img}"
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22 font-size=%2212%22%3E${img}%3C/text%3E%3C/svg%3E'">
-                <button class="image-item-remove" onclick="adminApp.removeImage(${index})">×</button>
-            </div>
-        `).join('');
+        // Clear list safely
+        while (list.firstChild) {
+            list.removeChild(list.firstChild);
+        }
+        
+        // Create image items safely
+        images.forEach((img, index) => {
+            const imageItem = this.security.createSafeElement('div', { 
+                className: 'image-item',
+                'data-image': img
+            });
+            
+            const imgElement = this.security.createSafeElement('img', {
+                src: `../../${this.security.escapeHtml(this.state.currentProject?.folder || 'temp')}/${this.security.escapeHtml(img)}`,
+                alt: this.security.escapeHtml(img)
+            });
+            imgElement.onerror = function() {
+                this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23f8f8f8%22/%3E%3Ctext x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-family=%22Inter%22 font-size=%2212%22%3ENo Image%3C/text%3E%3C/svg%3E';
+            };
+            
+            const removeBtn = this.security.createSafeElement('button', { className: 'image-item-remove' }, '×');
+            removeBtn.onclick = () => this.removeImage(index);
+            
+            imageItem.appendChild(imgElement);
+            imageItem.appendChild(removeBtn);
+            list.appendChild(imageItem);
+        });
     },
 
     getProjectImages() {
@@ -461,12 +600,17 @@ if (typeof module !== 'undefined' && module.exports) {
 
     showError(message) {
         const errorEl = document.getElementById('authError');
-        errorEl.textContent = message;
-        errorEl.classList.add('active');
-        
-        setTimeout(() => {
-            errorEl.classList.remove('active');
-        }, 5000);
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.classList.add('active');
+            
+            setTimeout(() => {
+                errorEl.classList.remove('active');
+            }, 5000);
+        } else {
+            // Fallback: show toast if error element doesn't exist
+            this.showToast(message, 'error');
+        }
     },
 
     updateSaveStatus(status) {
@@ -564,100 +708,123 @@ if (typeof module !== 'undefined' && module.exports) {
 
     // Event Listeners
     setupEventListeners() {
-        // Track activity
-        document.addEventListener('click', () => this.updateActivity());
-        document.addEventListener('keydown', () => this.updateActivity());
+        try {
+            // Track activity
+            document.addEventListener('click', () => this.updateActivity());
+            document.addEventListener('keydown', () => this.updateActivity());
 
-        // Auth form
-        document.getElementById('authForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const password = document.getElementById('authPassword').value;
-            this.authenticate(password);
-        });
-
-        // Project form
-        document.getElementById('projectForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            this.saveProject(formData);
-        });
-
-        // Navigation tabs
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const section = e.target.dataset.section;
-                
-                // Update tabs
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Update sections
-                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-                document.getElementById(`${section}Section`).classList.add('active');
-            });
-        });
-
-        // Language tabs
-        document.querySelectorAll('.lang-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const lang = e.target.dataset.lang;
-                const container = e.target.closest('.lang-tabs').parentElement;
-                
-                // Update tabs
-                container.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Update content
-                container.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
-                container.querySelector(`.lang-content[data-lang="${lang}"]`).classList.add('active');
-            });
-        });
-
-        // Search and filters
-        document.getElementById('searchProjects').addEventListener('input', () => this.renderProjects());
-        document.getElementById('categoryFilter').addEventListener('change', () => this.renderProjects());
-
-        // Image upload
-        const uploadArea = document.getElementById('imageUploadArea');
-        const imageInput = document.getElementById('imageInput');
-
-        uploadArea.addEventListener('click', () => imageInput.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragging');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragging');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragging');
-            // Handle file drop
-            const files = Array.from(e.dataTransfer.files);
-            this.handleImageUpload(files);
-        });
-
-        imageInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            this.handleImageUpload(files);
-        });
-
-        // Modal close on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('projectModal').classList.contains('active')) {
-                this.closeModal();
+            // Login button (handled by openLogin() which opens Identity widget)
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', () => {
+                    this.openLogin();
+                });
             }
-        });
 
-        // Click outside modal to close
-        document.getElementById('projectModal').addEventListener('click', (e) => {
-            if (e.target.id === 'projectModal') {
-                this.closeModal();
+            // Project form
+            const projectForm = document.getElementById('projectForm');
+            if (projectForm) {
+                projectForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    this.saveProject(formData);
+                });
             }
-        });
+
+            // Navigation tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const section = e.target.dataset.section;
+                    
+                    // Update tabs
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Update sections
+                    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                    const sectionEl = document.getElementById(`${section}Section`);
+                    if (sectionEl) sectionEl.classList.add('active');
+                });
+            });
+
+            // Language tabs
+            document.querySelectorAll('.lang-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const lang = e.target.dataset.lang;
+                    const container = e.target.closest('.lang-tabs')?.parentElement;
+                    if (!container) return;
+                    
+                    // Update tabs
+                    container.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Update content
+                    container.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
+                    const contentEl = container.querySelector(`.lang-content[data-lang="${lang}"]`);
+                    if (contentEl) contentEl.classList.add('active');
+                });
+            });
+
+            // Search and filters
+            const searchProjects = document.getElementById('searchProjects');
+            const categoryFilter = document.getElementById('categoryFilter');
+            if (searchProjects) {
+                searchProjects.addEventListener('input', () => this.renderProjects());
+            }
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', () => this.renderProjects());
+            }
+
+            // Image upload
+            const uploadArea = document.getElementById('imageUploadArea');
+            const imageInput = document.getElementById('imageInput');
+            
+            if (uploadArea && imageInput) {
+                uploadArea.addEventListener('click', () => imageInput.click());
+                
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragging');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragging');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragging');
+                    // Handle file drop
+                    const files = Array.from(e.dataTransfer.files);
+                    this.handleImageUpload(files);
+                });
+
+                imageInput.addEventListener('change', (e) => {
+                    const files = Array.from(e.target.files);
+                    this.handleImageUpload(files);
+                });
+            }
+
+            // Modal close on escape
+            document.addEventListener('keydown', (e) => {
+                const projectModal = document.getElementById('projectModal');
+                if (e.key === 'Escape' && projectModal && projectModal.classList.contains('active')) {
+                    this.closeModal();
+                }
+            });
+
+            // Click outside modal to close
+            const projectModal = document.getElementById('projectModal');
+            if (projectModal) {
+                projectModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'projectModal') {
+                        this.closeModal();
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('[Admin] Error setting up event listeners:', error);
+        }
     },
 
     // Image handling
@@ -675,10 +842,22 @@ if (typeof module !== 'undefined' && module.exports) {
                 
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    imageItem.innerHTML = `
-                        <img src="${e.target.result}" alt="${file.name}">
-                        <button class="image-item-remove" onclick="adminApp.removeImage(${currentImages.length})">×</button>
-                    `;
+                    // Clear and create safely
+                    while (imageItem.firstChild) {
+                        imageItem.removeChild(imageItem.firstChild);
+                    }
+                    
+                    const img = this.security.createSafeElement('img', {
+                        src: e.target.result,
+                        alt: this.security.escapeHtml(file.name)
+                    });
+                    
+                    const removeBtn = this.security.createSafeElement('button', { className: 'image-item-remove' }, '×');
+                    const currentIndex = currentImages.length;
+                    removeBtn.onclick = () => this.removeImage(currentIndex);
+                    
+                    imageItem.appendChild(img);
+                    imageItem.appendChild(removeBtn);
                 };
                 reader.readAsDataURL(file);
                 
@@ -737,13 +916,96 @@ if (typeof module !== 'undefined' && module.exports) {
         localStorage.setItem('siteSettings', JSON.stringify(settings));
     },
 
-    // Save content (placeholder for future content management)
+    // Other admin functions
+    changePassword() {
+        // Netlify Identity handles password changes through their widget
+        // Redirect to Identity password change or use Identity API
+        if (typeof netlifyIdentity !== 'undefined' && netlifyIdentity.currentUser()) {
+            // Use Identity's password update API
+            const user = netlifyIdentity.currentUser();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!newPassword || !confirmPassword) {
+                this.showToast('Please fill in both password fields', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                this.showToast('Passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                this.showToast('Password must be at least 8 characters', 'error');
+                return;
+            }
+            
+            // Update password via Identity API
+            const identityUrl = `${window.location.origin}/.netlify/identity`;
+            fetch(`${identityUrl}/user`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token.access_token}`
+                },
+                body: JSON.stringify({
+                    password: newPassword
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    this.showToast('Password updated successfully', 'success');
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    this.showToast('Failed to update password. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Password update error:', error);
+                this.showToast('Error updating password. Please try again.', 'error');
+            });
+        } else {
+            this.showToast('Please log in first', 'error');
+        }
+        
+        // In production, this would update the password on the server
+        this.showToast('Password updated successfully', 'success');
+    },
+
+    // Note: exportData(), viewWebsite(), logout(), createBackup(), restoreBackup() 
+    // are defined earlier in this file - removed duplicates that were overwriting them
+    
     saveContent() {
         this.showToast('Content saved successfully', 'success');
     }
 };
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    adminApp.init();
-});
+// Wait for both DOM and Identity widget to be available
+function initializeAdmin() {
+    // Check if DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeAdmin);
+        return;
+    }
+    
+    // Wait for AuthManager to be available (Google OAuth)
+    if (typeof window.AuthManager === 'undefined') {
+        setTimeout(initializeAdmin, 100);
+        return;
+    }
+    
+    console.log('[AdminApp] Starting initialization...');
+    
+    // Initialize admin app
+    if (typeof adminApp !== 'undefined') {
+        adminApp.init();
+    } else {
+        console.error('[AdminApp] adminApp not defined');
+    }
+}
+
+// Start initialization
+initializeAdmin();

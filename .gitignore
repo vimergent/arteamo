@@ -1,0 +1,6 @@
+# Local Netlify folder
+.netlify
+
+# Claude Code local files
+CLAUDE.md
+session-summaries/
