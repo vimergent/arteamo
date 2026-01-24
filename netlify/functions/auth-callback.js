@@ -4,24 +4,28 @@
 const crypto = require('crypto');
 const https = require('https');
 
-// Verify state token for CSRF protection
+// Verify state token for CSRF protection (timing-safe)
 function verifyStateToken(token, secret, maxAge = 600000) {
   try {
     const [data, signature] = token.split('.');
     if (!data || !signature) return false;
-    
-    // Verify signature
+
+    // Verify signature using timing-safe comparison
     const expectedSignature = crypto
       .createHmac('sha256', secret)
       .update(data)
       .digest('base64url');
-    
-    if (signature !== expectedSignature) return false;
-    
+
+    const sigBuffer = Buffer.from(signature);
+    const expectedBuffer = Buffer.from(expectedSignature);
+
+    if (sigBuffer.length !== expectedBuffer.length) return false;
+    if (!crypto.timingSafeEqual(sigBuffer, expectedBuffer)) return false;
+
     // Check expiry
     const payload = JSON.parse(Buffer.from(data, 'base64url').toString());
     if (Date.now() - payload.timestamp > maxAge) return false;
-    
+
     return true;
   } catch (e) {
     return false;

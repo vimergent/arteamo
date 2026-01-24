@@ -169,25 +169,16 @@
 
                 <div class="settings-panel">
                     <div class="settings-group">
-                        <h3>Contact Settings</h3>
-                        <div class="form-group">
-                            <label>Contact Form Email</label>
-                            <input type="email" class="form-input" id="contactEmail" placeholder="email@example.com">
-                            <small>Email address where contact form submissions will be sent</small>
+                        <h3>Data Sync</h3>
+                        <p class="settings-info">Refresh to load latest data from the server, discarding local changes.</p>
+                        <div class="settings-actions">
+                            <button class="btn btn-secondary" onclick="adminApp.refreshFromServer()">
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 6px;">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                                </svg>
+                                Refresh from Server
+                            </button>
                         </div>
-                        <button class="btn btn-secondary" onclick="adminApp.saveContactEmail()">Update Email</button>
-                    </div>
-
-                    <div class="settings-group">
-                        <h3>Security</h3>
-                        <div class="form-group">
-                            <label>Change Admin Password</label>
-                            <input type="password" class="form-input" id="newPassword" placeholder="New password">
-                        </div>
-                        <div class="form-group">
-                            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm password">
-                        </div>
-                        <button class="btn btn-secondary" onclick="adminApp.changePassword()">Update Password</button>
                     </div>
 
                     <div class="settings-group">
@@ -200,17 +191,8 @@
                     </div>
 
                     <div class="settings-group">
-                        <h3>Advanced</h3>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="autoSave" checked> Enable auto-save
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="showPreview" checked> Show live preview
-                            </label>
-                        </div>
+                        <h3>Account</h3>
+                        <p class="settings-info" id="accountInfo">Signed in with Google OAuth</p>
                     </div>
                 </div>
             </section>
@@ -281,6 +263,10 @@
                             <input type="text" class="form-input" id="name_en" name="name_en" required>
                         </div>
                         <div class="form-group">
+                            <label>Subtitle (English)</label>
+                            <input type="text" class="form-input" id="subtitle_en" name="subtitle_en" placeholder="e.g., Modern Apartment Renovation">
+                        </div>
+                        <div class="form-group">
                             <label>Description (English)</label>
                             <textarea class="form-textarea" id="description_en" name="description_en" rows="3"></textarea>
                         </div>
@@ -290,6 +276,10 @@
                         <div class="form-group">
                             <label>Project Name (Bulgarian)</label>
                             <input type="text" class="form-input" id="name_bg" name="name_bg">
+                        </div>
+                        <div class="form-group">
+                            <label>Subtitle (Bulgarian)</label>
+                            <input type="text" class="form-input" id="subtitle_bg" name="subtitle_bg">
                         </div>
                         <div class="form-group">
                             <label>Description (Bulgarian)</label>
@@ -303,6 +293,10 @@
                             <input type="text" class="form-input" id="name_ru" name="name_ru">
                         </div>
                         <div class="form-group">
+                            <label>Subtitle (Russian)</label>
+                            <input type="text" class="form-input" id="subtitle_ru" name="subtitle_ru">
+                        </div>
+                        <div class="form-group">
                             <label>Description (Russian)</label>
                             <textarea class="form-textarea" id="description_ru" name="description_ru" rows="3"></textarea>
                         </div>
@@ -312,6 +306,10 @@
                         <div class="form-group">
                             <label>Project Name (Spanish)</label>
                             <input type="text" class="form-input" id="name_es" name="name_es">
+                        </div>
+                        <div class="form-group">
+                            <label>Subtitle (Spanish)</label>
+                            <input type="text" class="form-input" id="subtitle_es" name="subtitle_es">
                         </div>
                         <div class="form-group">
                             <label>Description (Spanish)</label>

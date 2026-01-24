@@ -3,27 +3,31 @@
 
 const crypto = require('crypto');
 
-// Verify and decode session token
+// Verify and decode session token (timing-safe)
 function verifySessionToken(token, secret) {
   try {
     const [data, signature] = token.split('.');
     if (!data || !signature) return null;
-    
-    // Verify signature
+
+    // Verify signature using timing-safe comparison
     const expectedSignature = crypto
       .createHmac('sha256', secret)
       .update(data)
       .digest('base64url');
-    
-    if (signature !== expectedSignature) return null;
-    
+
+    const sigBuffer = Buffer.from(signature);
+    const expectedBuffer = Buffer.from(expectedSignature);
+
+    if (sigBuffer.length !== expectedBuffer.length) return null;
+    if (!crypto.timingSafeEqual(sigBuffer, expectedBuffer)) return null;
+
     // Decode and check expiry
     const payload = JSON.parse(Buffer.from(data, 'base64url').toString());
-    
+
     if (!payload.exp || Date.now() > payload.exp) {
       return null; // Token expired
     }
-    
+
     return payload;
   } catch (e) {
     console.error('Token verification error:', e);

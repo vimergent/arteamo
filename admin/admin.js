@@ -37,23 +37,13 @@ const adminApp = {
         }
     },
 
-    // Configuration
-    config: {
-        maxLoginAttempts: 3,
-        lockoutTime: 15 * 60 * 1000, // 15 minutes
-        sessionTimeout: 30 * 60 * 1000, // 30 minutes
-        autoSaveInterval: 30 * 1000, // 30 seconds
-    },
-
     // State
     state: {
         isAuthenticated: false,
+        currentUser: null,
         currentProject: null,
         projects: [],
         hasUnsavedChanges: false,
-        lastActivity: Date.now(),
-        loginAttempts: 0,
-        lockoutUntil: null,
     },
 
     // Initialize
@@ -64,9 +54,6 @@ const adminApp = {
         this.checkAuth();
         this.setupEventListeners();
         this.loadProjects();
-        this.startSessionMonitor();
-        this.startAutoSave();
-        this.loadContactEmail();
     },
 
     // Authentication - Google OAuth
@@ -181,54 +168,46 @@ const adminApp = {
         window.location.href = '/.netlify/functions/auth-logout';
     },
 
-    // Session Management
-    startSessionMonitor() {
-        setInterval(() => {
-            if (this.state.isAuthenticated) {
-                const lastActivity = parseInt(sessionStorage.getItem('lastActivity') || '0');
-                const timeSinceActivity = Date.now() - lastActivity;
-                
-                if (timeSinceActivity > this.config.sessionTimeout) {
-                    this.logout();
-                    this.showToast('Session expired. Please log in again.', 'warning');
-                }
-            }
-        }, 60000); // Check every minute
-    },
-
-    updateActivity() {
-        if (this.state.isAuthenticated) {
-            sessionStorage.setItem('lastActivity', Date.now());
-        }
-    },
-
     // Project Management
     loadProjects() {
         try {
-            // First try to load from localStorage (new format with timestamp)
-            const savedProjects = localStorage.getItem('adminProjects');
-            if (savedProjects) {
-                const parsed = JSON.parse(savedProjects);
-                // Handle both new format (with lastSaved) and old format (array)
-                if (parsed.projects && Array.isArray(parsed.projects)) {
-                    this.state.projects = parsed.projects;
-                    // Log last save time for verification
-                    if (parsed.lastSaved) {
-                        const saveDate = new Date(parsed.lastSaved);
-                        this.updateSaveStatus(`Last saved: ${saveDate.toLocaleString()}`);
-                    }
-                } else if (Array.isArray(parsed)) {
-                    // Old format - backward compatibility
-                    this.state.projects = parsed;
-                }
-            } else if (typeof projectConfig !== 'undefined') {
-                // Import from existing project-config.js
+            // FIXED: Always load from project-config.js first (source of truth from GitHub)
+            // localStorage is only for tracking unsaved in-session changes
+            if (typeof projectConfig !== 'undefined' && Object.keys(projectConfig).length > 0) {
                 this.importFromProjectConfig();
+                this.state.hasUnsavedChanges = false;
+                this.updateSaveStatus('Loaded from server');
+            } else {
+                // Fallback to localStorage only if no project-config.js
+                const savedProjects = localStorage.getItem('adminProjects');
+                if (savedProjects) {
+                    const parsed = JSON.parse(savedProjects);
+                    if (parsed.projects && Array.isArray(parsed.projects)) {
+                        this.state.projects = parsed.projects;
+                    } else if (Array.isArray(parsed)) {
+                        this.state.projects = parsed;
+                    }
+                    this.updateSaveStatus('Loaded from local storage (no server data)');
+                }
             }
         } catch (error) {
             console.error('Error loading projects:', error);
             this.showToast('Error loading projects', 'error');
         }
+    },
+
+    // Refresh data from server (discards local changes)
+    refreshFromServer() {
+        if (this.state.hasUnsavedChanges) {
+            if (!confirm('You have unsaved changes. Refreshing will discard them. Continue?')) {
+                return;
+            }
+        }
+
+        // Clear localStorage and reload page to get fresh project-config.js
+        localStorage.removeItem('adminProjects');
+        localStorage.removeItem('adminProjectsRaw');
+        window.location.reload();
     },
 
     importFromProjectConfig() {
@@ -324,6 +303,13 @@ const adminApp = {
                 ru: this.security.sanitizeInput(formData.get('name_ru') || formData.get('name_en') || ''),
                 es: this.security.sanitizeInput(formData.get('name_es') || formData.get('name_en') || ''),
             },
+            // FIXED: Include subtitle field
+            subtitle: {
+                en: this.security.sanitizeInput(formData.get('subtitle_en') || ''),
+                bg: this.security.sanitizeInput(formData.get('subtitle_bg') || formData.get('subtitle_en') || ''),
+                ru: this.security.sanitizeInput(formData.get('subtitle_ru') || formData.get('subtitle_en') || ''),
+                es: this.security.sanitizeInput(formData.get('subtitle_es') || formData.get('subtitle_en') || ''),
+            },
             description: {
                 en: this.security.sanitizeInput(formData.get('description_en') || ''),
                 bg: this.security.sanitizeInput(formData.get('description_bg') || formData.get('description_en') || ''),
@@ -340,9 +326,14 @@ const adminApp = {
         };
 
         if (this.state.currentProject) {
-            // Update existing
+            // Update existing - FIXED: Check index is valid
             const index = this.state.projects.findIndex(p => p.id === this.state.currentProject.id);
-            this.state.projects[index] = project;
+            if (index !== -1) {
+                this.state.projects[index] = project;
+            } else {
+                // Project ID not found, add as new
+                this.state.projects.push(project);
+            }
         } else {
             // Add new
             this.state.projects.push(project);
@@ -351,7 +342,7 @@ const adminApp = {
         this.saveProjects();
         this.closeModal();
         this.renderProjects();
-        this.showToast('Project saved successfully', 'success');
+        this.showToast('Project saved locally. Click "Export & Deploy" to publish.', 'success');
     },
 
     // UI Rendering
@@ -379,7 +370,7 @@ const adminApp = {
             // Image container
             const imageContainer = this.security.createSafeElement('div', { className: 'project-admin-image' });
             const img = this.security.createSafeElement('img', {
-                src: `../../${this.security.escapeHtml(project.folder)}/${this.security.escapeHtml(project.coverImage)}`,
+                src: `../${this.security.escapeHtml(project.folder)}/${this.security.escapeHtml(project.coverImage)}`,
                 alt: this.security.escapeHtml(project.name.en)
             });
             img.onerror = function() {
@@ -419,14 +410,15 @@ const adminApp = {
         document.getElementById('projectYear').value = project.year;
         document.getElementById('projectArea').value = project.area;
 
-        // Populate language fields
+        // Populate language fields - FIXED: Include subtitle
         ['en', 'bg', 'ru', 'es'].forEach(lang => {
-            document.getElementById(`name_${lang}`).value = project.name[lang] || '';
-            document.getElementById(`description_${lang}`).value = project.description[lang] || '';
+            document.getElementById(`name_${lang}`).value = project.name?.[lang] || '';
+            document.getElementById(`subtitle_${lang}`).value = project.subtitle?.[lang] || '';
+            document.getElementById(`description_${lang}`).value = project.description?.[lang] || '';
         });
 
         // Display images
-        this.displayProjectImages(project.images);
+        this.displayProjectImages(project.images || []);
     },
 
     displayProjectImages(images) {
@@ -498,6 +490,7 @@ const adminApp = {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include', // IMPORTANT: Include session cookie for auth
                 body: JSON.stringify({
                     content: projectConfigContent,
                     message: `CMS: Update project configuration - ${new Date().toLocaleString()}`,
@@ -623,19 +616,6 @@ if (typeof module !== 'undefined' && module.exports) {
         window.open('../index.html', '_blank');
     },
 
-    // Auto-save
-    startAutoSave() {
-        setInterval(() => {
-            if (this.state.hasUnsavedChanges && this.state.isAuthenticated) {
-                this.updateSaveStatus('Auto-saving...');
-                // In a real implementation, this would save to a server
-                setTimeout(() => {
-                    this.updateSaveStatus('All changes saved');
-                }, 1000);
-            }
-        }, this.config.autoSaveInterval);
-    },
-
     // Backup & Restore
     createBackup() {
         const backup = {
@@ -682,38 +662,10 @@ if (typeof module !== 'undefined' && module.exports) {
         input.click();
     },
 
-    // Password Change
-    async changePassword() {
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (!newPassword || !confirmPassword) {
-            this.showToast('Please fill in both password fields', 'error');
-            return;
-        }
-        
-        if (newPassword !== confirmPassword) {
-            this.showToast('Passwords do not match', 'error');
-            return;
-        }
-        
-        if (newPassword.length < 8) {
-            this.showToast('Password must be at least 8 characters', 'error');
-            return;
-        }
-        
-        // In production, this would update the password on the server
-        this.showToast('Password change requires server implementation', 'warning');
-    },
-
     // Event Listeners
     setupEventListeners() {
         try {
-            // Track activity
-            document.addEventListener('click', () => this.updateActivity());
-            document.addEventListener('keydown', () => this.updateActivity());
-
-            // Login button (handled by openLogin() which opens Identity widget)
+            // Login button
             const loginButton = document.getElementById('loginButton');
             if (loginButton) {
                 loginButton.addEventListener('click', () => {
@@ -870,115 +822,9 @@ if (typeof module !== 'undefined' && module.exports) {
     },
 
     // Contact Email Management
-    loadContactEmail() {
-        const savedEmail = localStorage.getItem('adminContactEmail') || 'petyaem@abv.bg';
-        const emailInput = document.getElementById('contactEmail');
-        if (emailInput) {
-            emailInput.value = savedEmail;
-        }
-    },
-
-    saveContactEmail() {
-        const emailInput = document.getElementById('contactEmail');
-        const email = emailInput.value.trim();
-        
-        if (!email) {
-            this.showToast('Please enter a valid email address', 'error');
-            return;
-        }
-        
-        // Basic email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            this.showToast('Please enter a valid email address', 'error');
-            return;
-        }
-        
-        // Save to localStorage
-        localStorage.setItem('adminContactEmail', email);
-        
-        // Update environment variable if possible
-        // In production, this would update the Netlify environment variable
-        this.showToast('Contact email updated successfully', 'success');
-        
-        // Also save to a settings file that can be read by the contact form
-        this.updateContactSettings(email);
-    },
-
-    updateContactSettings(email) {
-        // Create a settings object that can be read by the contact form
-        const settings = {
-            contactEmail: email,
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Save to localStorage for now
-        localStorage.setItem('siteSettings', JSON.stringify(settings));
-    },
-
-    // Other admin functions
-    changePassword() {
-        // Netlify Identity handles password changes through their widget
-        // Redirect to Identity password change or use Identity API
-        if (typeof netlifyIdentity !== 'undefined' && netlifyIdentity.currentUser()) {
-            // Use Identity's password update API
-            const user = netlifyIdentity.currentUser();
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (!newPassword || !confirmPassword) {
-                this.showToast('Please fill in both password fields', 'error');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                this.showToast('Passwords do not match', 'error');
-                return;
-            }
-            
-            if (newPassword.length < 8) {
-                this.showToast('Password must be at least 8 characters', 'error');
-                return;
-            }
-            
-            // Update password via Identity API
-            const identityUrl = `${window.location.origin}/.netlify/identity`;
-            fetch(`${identityUrl}/user`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token.access_token}`
-                },
-                body: JSON.stringify({
-                    password: newPassword
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    this.showToast('Password updated successfully', 'success');
-                    document.getElementById('newPassword').value = '';
-                    document.getElementById('confirmPassword').value = '';
-                } else {
-                    this.showToast('Failed to update password. Please try again.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Password update error:', error);
-                this.showToast('Error updating password. Please try again.', 'error');
-            });
-        } else {
-            this.showToast('Please log in first', 'error');
-        }
-        
-        // In production, this would update the password on the server
-        this.showToast('Password updated successfully', 'success');
-    },
-
-    // Note: exportData(), viewWebsite(), logout(), createBackup(), restoreBackup() 
-    // are defined earlier in this file - removed duplicates that were overwriting them
-    
+    // Content editor save (placeholder - not persisted to server)
     saveContent() {
-        this.showToast('Content saved successfully', 'success');
+        this.showToast('Content changes saved locally', 'success');
     }
 };
 
