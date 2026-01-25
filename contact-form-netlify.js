@@ -317,31 +317,29 @@ class ContactForm {
         // Hide any previous status
         statusDiv.style.display = 'none';
 
-        // Collect form data as JSON
-        const formData = {
-            name: form.querySelector('#name')?.value || '',
-            email: form.querySelector('#email')?.value || '',
-            phone: form.querySelector('#phone')?.value || '',
-            subject: form.querySelector('#subject')?.value || '',
-            message: form.querySelector('#message')?.value || '',
-            language: currentLang
-        };
+        // Collect form data for Netlify Forms
+        const formData = new URLSearchParams();
+        formData.append('form-name', 'contact');
+        formData.append('name', form.querySelector('#name')?.value || '');
+        formData.append('email', form.querySelector('#email')?.value || '');
+        formData.append('phone', form.querySelector('#phone')?.value || '');
+        formData.append('subject', form.querySelector('#subject')?.value || '');
+        formData.append('message', form.querySelector('#message')?.value || '');
+        formData.append('language', currentLang);
 
         try {
-            const response = await fetch('/.netlify/functions/send-email', {
+            const response = await fetch('/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
             });
 
-            const result = await response.json();
-
-            if (response.ok && result.success) {
+            if (response.ok) {
                 // Show success message
                 form.style.display = 'none';
                 document.getElementById('formSuccess').style.display = 'block';
             } else {
-                throw new Error(result.error || 'Form submission failed');
+                throw new Error('Form submission failed');
             }
         } catch (error) {
             console.error('Form submission error:', error);
