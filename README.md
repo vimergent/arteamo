@@ -16,7 +16,7 @@ This website is configured for deployment on Netlify. Simply connect your GitHub
 
 ### Admin Access
 
-The CMS admin panel is available at `/admin/` with password: `arteamo2024admin`
+The CMS admin panel is available at `/admin/` and uses Google sign-in; authorized accounts are configured in the hosting environment.
 
 ## Project Structure
 
