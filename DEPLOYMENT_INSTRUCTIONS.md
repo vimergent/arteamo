@@ -44,13 +44,13 @@ You need to update the following files with your Netlify site URL:
 - [ ] Test the contact form
 - [ ] Verify all images load correctly
 - [ ] Check multi-language switching
-- [ ] Test the admin panel at `/admin/` (password: `arteamo2024admin`)
+- [ ] Verify authorized Google accounts can sign in to the CMS admin panel
 - [ ] Verify the site works on mobile devices
 
 ## Admin Panel Access
 
 - URL: `https://your-site.com/admin/`
-- Password: `arteamo2024admin`
+- Access: Sign in with an authorized Google account; access settings are configured in the hosting environment.
 
 ## Support
 
